@@ -1,0 +1,17 @@
+{
+  "name": "examenarbete",
+  "version": "1.0.0",
+  "description": "This application is developed as deploma work.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "frontend": "cd frontend && npm next start",
+    "backend": "cd backend && node index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com-School:SparklingRaindrop/examenarbete.git"
+  },
+  "author": "Tsubasa Fujii",
+  "license": "ISC"
+}
