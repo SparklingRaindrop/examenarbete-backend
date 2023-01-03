@@ -26,23 +26,36 @@ export async function addItem(req: Request, res: Response): Promise<void> {
 
     const existingData = await getById(id);
     if (!existingData) {
-        await add({
-            itemId: id,
-            amount
-        })
+        const newData = {
+            item_id: id,
+            amount: amount,
+            updated_at: new Date(),
+            isChecked: false
+        };
+        await add(newData)
             .then(() => res.status(Status.Created).send())
             .catch(() => res.status(Status.BadRequest).send());
         return;
+    } else {
+        res.status(Status.BadRequest).send({
+            error: 'The requested item already exists.',
+            message: 'Try again with POST or PATCH method to update.'
+        });
     }
-
-    const sum = existingData.amount + amount;
-    const newData = {
-        itemId: id,
-        amount: sum
-    };
-    await edit(newData)
-        .then(() => res.status(Status.Created).send())
-        .catch(() => res.status(Status.BadRequest).send());
 }
 
 // update
+/* 
+ else {
+        const sum = existingData.amount + amount;
+        const newData = {
+            itemId: id,
+            amount: sum,
+            isChecked: true
+        };
+        await edit(newData)
+            .then(() => res.status(Status.Created).send())
+            .catch(() => res.status(Status.BadRequest).send());
+    }
+
+*/
