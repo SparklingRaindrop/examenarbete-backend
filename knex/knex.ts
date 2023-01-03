@@ -1,4 +1,5 @@
 import knex from 'knex';
 const environment = process.env.NODE_ENV || 'development'; // eslint-disable-line
 import config from '../knexfile';
-export default knex(config[environment]);
+const knexInstance = knex(config[environment]);
+export default knexInstance;
