@@ -1,8 +1,9 @@
-const express = require('express');
+import { removeItem, getItems } from "./groceries.controllers";
+import express from 'express';
+
 const route = express.Router();
 
-const { getItems } = require('./groceries.controllers');
-
 route.get('/', getItems);
+route.delete('/:itemId', removeItem);
 
 export { route as groceriesRoute };
