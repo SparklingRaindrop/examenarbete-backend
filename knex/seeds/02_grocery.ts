@@ -6,7 +6,14 @@ export async function seed(knex: Knex): Promise<void> {
 
     // Inserts seed entries
     await knex('grocery').insert([
-        { updated_at: Date.now(), item_id: 1 },
-        { updated_at: Date.now(), item_id: 2 },
+        {
+            updated_at: new Date(),
+            item_id: 1,
+            amount: 1,
+        }, {
+            updated_at: new Date(),
+            item_id: 2,
+            amount: 3,
+        },
     ]);
 };
