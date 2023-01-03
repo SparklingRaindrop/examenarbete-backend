@@ -1,1 +1,2 @@
-module.exports = require('./groceries.routes');
+import { groceriesRoute } from './groceries.routes'
+export { groceriesRoute }
