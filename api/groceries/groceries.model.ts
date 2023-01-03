@@ -9,7 +9,7 @@ interface newData {
 export async function getAll(): Promise<Grocery | undefined> {
     try {
         return await knex<Grocery>('Item')
-            .select('Item.*', 'Grocery.amount')
+            .select('Item.*', 'Grocery.*')
             .innerJoin(
                 'Grocery',
                 'item_id',
@@ -46,17 +46,10 @@ export async function remove(itemId: string): Promise<void | undefined> {
     return;
 }
 
-export async function add(newData: newData): Promise<void> {
-    const data: GroceryItem = {
-        item_id: newData.itemId,
-        amount: newData.amount,
-        updated_at: new Date(),
-        isChecked: true
-    };
-
+export async function add(newData: GroceryItem): Promise<void> {
     try {
         await knex<GroceryItem>('Grocery')
-            .insert(data);
+            .insert(newData);
     } catch (error) {
         console.error(error);
     }
