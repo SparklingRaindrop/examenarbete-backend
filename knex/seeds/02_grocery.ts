@@ -1,4 +1,4 @@
-import { Knex } from "knex";
+import { Knex } from 'knex';
 
 export async function seed(knex: Knex): Promise<void> {
     // Deletes ALL existing entries
@@ -10,10 +10,12 @@ export async function seed(knex: Knex): Promise<void> {
             updated_at: new Date(),
             item_id: 1,
             amount: 1,
+            isChecked: false,
         }, {
             updated_at: new Date(),
             item_id: 2,
             amount: 3,
+            isChecked: false,
         },
     ]);
-};
+}

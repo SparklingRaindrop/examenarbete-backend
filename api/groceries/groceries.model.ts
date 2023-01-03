@@ -50,7 +50,8 @@ export async function add(newData: newData): Promise<void> {
     const data: GroceryItem = {
         item_id: newData.itemId,
         amount: newData.amount,
-        updated_at: new Date()
+        updated_at: new Date(),
+        isChecked: true
     };
 
     try {
