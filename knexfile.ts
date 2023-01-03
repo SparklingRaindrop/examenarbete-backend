@@ -8,6 +8,7 @@ const config: { [key: string]: Knex.Config } = {
     connection: {
       filename: __dirname + '/db/db.sqlite3'
     },
+    useNullAsDefault: true,
     migrations: {
       directory: __dirname + '/knex/migrations', // eslint-disable-line
     },
