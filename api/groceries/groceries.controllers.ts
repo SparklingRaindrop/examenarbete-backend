@@ -16,7 +16,7 @@ export async function removeItem(req: Request, res: Response): Promise<void> {
     const { itemId } = req.params;
     await remove(itemId)
         .then(() => res.status(Status.NoContent).send())
-        .catch(() => res.status(Status.BadRequest).send())
+        .catch(() => res.status(Status.BadRequest).send());
 }
 
 // TODO: check if the requested item exists

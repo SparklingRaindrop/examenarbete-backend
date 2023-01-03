@@ -1,4 +1,4 @@
-import { removeItem, getItems, addItem } from "./groceries.controllers";
+import { removeItem, getItems, addItem } from './groceries.controllers';
 import express from 'express';
 
 const route = express.Router();

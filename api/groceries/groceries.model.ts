@@ -4,7 +4,7 @@ import { Grocery, GroceryItem } from '../../types/grocery';
 interface newData {
     itemId: string,
     amount: number
-};
+}
 
 export async function getAll(): Promise<Grocery | undefined> {
     try {
