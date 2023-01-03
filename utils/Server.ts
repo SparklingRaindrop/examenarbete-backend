@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import bodyParser from 'body-parser';
 
 import { groceriesRoute } from '../api/groceries';
 
@@ -16,8 +17,11 @@ export class Server {
         dotenv.config();
 
         const app: Application = express();
+
         // middleware
+        app.use(bodyParser.json())
         app.use(cors(corsOptions));
+
         // routes
         app.use('/groceries', groceriesRoute);
 
