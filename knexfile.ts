@@ -4,9 +4,15 @@ import type { Knex } from "knex";
 
 const config: { [key: string]: Knex.Config } = {
   development: {
-    client: "sqlite3",
+    client: 'sqlite3',
     connection: {
-      filename: "./db/db.sqlite3"
+      filename: __dirname + '/db/db.sqlite3'
+    },
+    migrations: {
+      directory: __dirname + '/knex/migrations', // eslint-disable-line
+    },
+    seeds: {
+      directory: __dirname + '/knex/seeds'
     }
   },
 
@@ -44,4 +50,4 @@ const config: { [key: string]: Knex.Config } = {
 
 };
 
-module.exports = config;
+export default config;
