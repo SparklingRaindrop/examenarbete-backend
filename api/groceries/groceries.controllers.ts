@@ -10,7 +10,11 @@ interface Data extends Item {
 
 export async function getGroceries(_: Request, res: Response): Promise<void> {
     const data = await getAll();
-    res.json(data);
+    const parsedData = data?.map(item => {
+        item.isChecked = item.isChecked === 0 ? false : true;
+        return item;
+    });
+    res.json(parsedData);
 }
 
 export async function removeGrocery(req: Request, res: Response): Promise<void> {
