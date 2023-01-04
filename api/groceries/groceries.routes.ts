@@ -1,10 +1,11 @@
-import { removeItem, getItems, addItem } from './groceries.controllers';
+import { removeGrocery, getGroceries, addGrocery, updateGrocery } from './groceries.controllers';
 import express from 'express';
 
 const route = express.Router();
 
-route.get('/', getItems);
-route.delete('/:itemId', removeItem);
-route.post('/', addItem);
+route.get('/', getGroceries);
+route.delete('/:itemId', removeGrocery);
+route.post('/', addGrocery);
+route.patch('/', updateGrocery);
 
 export { route as groceriesRoute };

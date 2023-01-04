@@ -1,18 +1,19 @@
 import { Request, Response } from 'express';
-import { Status } from '../../types/api';
+import { Error, Status } from '../../types/api';
 
 import { add, edit, getAll, getById, remove } from './groceries.model';
 
 interface Data extends Item {
-    amount: number;
+    amount?: number;
+    isChecked?: boolean;
 }
 
-export async function getItems(req: Request, res: Response): Promise<void> {
+export async function getGroceries(_: Request, res: Response): Promise<void> {
     const data = await getAll();
     res.json(data);
 }
 
-export async function removeItem(req: Request, res: Response): Promise<void> {
+export async function removeGrocery(req: Request, res: Response): Promise<void> {
     const { itemId } = req.params;
     await remove(itemId)
         .then(() => res.status(Status.NoContent).send())
@@ -21,41 +22,53 @@ export async function removeItem(req: Request, res: Response): Promise<void> {
 
 // TODO: check if the requested item exists
 // TODO: it has to sum up
-export async function addItem(req: Request, res: Response): Promise<void> {
+export async function addGrocery(req: Request, res: Response): Promise<void> {
     const { id, amount }: Data = req.body;
 
     const existingData = await getById(id);
-    if (!existingData) {
-        const newData = {
-            item_id: id,
-            amount: amount,
-            updated_at: new Date(),
-            isChecked: false
-        };
-        await add(newData)
-            .then(() => res.status(Status.Created).send())
-            .catch(() => res.status(Status.BadRequest).send());
-        return;
-    } else {
+    if (!amount) {
         res.status(Status.BadRequest).send({
-            error: 'The requested item already exists.',
+            error: Error.MissingData,
+        });
+        return;
+    }
+    if (existingData) {
+        res.status(Status.BadRequest).send({
+            error: Error.AlreadyExist,
             message: 'Try again with POST or PATCH method to update.'
         });
+        return;
     }
+
+    const newData = {
+        item_id: id,
+        amount: amount,
+        updated_at: new Date(),
+        isChecked: false
+    };
+    await add(newData)
+        .then(() => res.status(Status.Created).send())
+        .catch(() => res.status(Status.BadRequest).send());
 }
 
-// update
-/* 
- else {
-        const sum = existingData.amount + amount;
-        const newData = {
-            itemId: id,
-            amount: sum,
-            isChecked: true
-        };
-        await edit(newData)
-            .then(() => res.status(Status.Created).send())
-            .catch(() => res.status(Status.BadRequest).send());
+export async function updateGrocery(req: Request, res: Response): Promise<void> {
+    const { id, amount, isChecked }: Data = req.body;
+
+    const existingData = await getById(id);
+    if (!existingData) {
+        res.status(Status.NotFound).send({
+            error: 'The requested item doesn\'t exist.'
+        });
+        return;
     }
 
-*/
+    const newData = {
+        item_id: id,
+        amount,
+        isChecked,
+        updated_at: new Date(),
+    };
+    await edit(newData)
+        .then(() => res.status(Status.Succuss).send())
+        .catch(() => res.status(Status.BadRequest).send());
+}
