@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 
 import { groceriesRoute } from '../api/groceries';
+dotenv.config();
 
 export class Server {
     port = process.env.PORT || 4500;
@@ -15,7 +16,6 @@ export class Server {
             origin: this.clientUrl,
             optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
         };
-        dotenv.config();
 
         // middleware
         this.app.use(bodyParser.json());
