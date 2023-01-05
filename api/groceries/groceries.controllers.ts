@@ -56,7 +56,8 @@ export async function addGrocery(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateGrocery(req: Request, res: Response): Promise<void> {
-    const { id, amount, isChecked }: Data = req.body;
+    const { itemId: id } = req.params;
+    const { amount, isChecked }: Data = req.body;
 
     const existingData = await getById(id);
     if (!existingData) {
