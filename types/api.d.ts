@@ -9,4 +9,5 @@ export const enum Status {
 export const enum Error {
     MissingData = 'Required data is missing.',
     AlreadyExist = 'The requested item already exists.',
+    Unsuccessful = 'Something happened on server',
 }
