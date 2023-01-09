@@ -3,10 +3,10 @@ import { v4 as uuid } from 'uuid';
 import { Error, Status } from '../../types/api';
 
 import { addItem, getItemByName } from '../items/item.model';
-import { add, edit, getAll, getGrocery, remove } from './groceries.model';
+import { addGrocery, editGrocery, getGroceries, getGrocery, removeGrocery } from './groceries.model';
 
-export async function getGroceries(_: Request, res: Response): Promise<void> {
-    const data = await getAll();
+export async function getAll(_: Request, res: Response): Promise<void> {
+    const data = await getGroceries();
     const parsedData = data?.map(item => {
         item.isChecked = item.isChecked === 0 ? false : true;
         return item;
@@ -14,15 +14,15 @@ export async function getGroceries(_: Request, res: Response): Promise<void> {
     res.json(parsedData);
 }
 
-export async function removeGrocery(req: Request, res: Response): Promise<void> {
+export async function remove(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-    await remove(id as unknown as Pick<Grocery, 'id'>)
+    await removeGrocery(id as unknown as Pick<Grocery, 'id'>)
         .then(() => res.status(Status.NoContent).send())
         .catch(() => res.status(Status.BadRequest).send());
 }
 
 // TODO: this has to be updated later. Item should be added by ID
-export async function addGrocery(req: Request, res: Response): Promise<void> {
+export async function add(req: Request, res: Response): Promise<void> {
     const { name, amount, isChecked, updated_at } = req.body;
     if (typeof amount === 'undefined') {
         res.status(Status.BadRequest).send({
@@ -61,7 +61,7 @@ export async function addGrocery(req: Request, res: Response): Promise<void> {
         isChecked: isChecked || false,
     };
 
-    await add(newData)
+    await addGrocery(newData)
         .then(() => res.status(Status.Created).send())
         .catch(() => res.status(Status.BadRequest).send());
 }
@@ -73,7 +73,7 @@ interface Data extends Omit<Item, 'id'> {
     item_id: Pick<Item, 'id'>;
 }
 
-export async function updateGrocery(req: Request, res: Response): Promise<void> {
+export async function update(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     const { amount, isChecked, item_id, name }: Data = req.body;
 
@@ -93,7 +93,7 @@ export async function updateGrocery(req: Request, res: Response): Promise<void> 
         isChecked,
     };
 
-    await edit(id as unknown as Pick<Grocery, 'id'>, newData)
+    await editGrocery(id as unknown as Pick<Grocery, 'id'>, newData)
         .then(() => res.status(Status.Succuss).send())
         .catch(() => res.status(Status.BadRequest).send());
 }

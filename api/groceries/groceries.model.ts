@@ -1,6 +1,6 @@
 import knex from '../../knex/knex';
 
-export async function getAll(): Promise<Grocery[] | undefined> {
+export async function getGroceries(): Promise<Grocery[] | undefined> {
     try {
         return await knex<Grocery[]>('Grocery')
             .select('Grocery.*', 'Item.id as item_id', 'Item.name as item_name')
@@ -38,7 +38,7 @@ export async function getGrocery(id: Pick<Grocery, 'id'>): Promise<GroceryRespon
     return;
 }
 
-export async function remove(id: Pick<Grocery, 'id'>): Promise<void | undefined> {
+export async function removeGrocery(id: Pick<Grocery, 'id'>): Promise<void | undefined> {
     try {
         await knex<Grocery[]>('Grocery')
             .where('id', id)
@@ -49,7 +49,7 @@ export async function remove(id: Pick<Grocery, 'id'>): Promise<void | undefined>
     return;
 }
 
-export async function add(newData: Exclude<Grocery, 'id'>): Promise<void> {
+export async function addGrocery(newData: Exclude<Grocery, 'id'>): Promise<void> {
     try {
         await knex<Grocery>('Grocery')
             .insert(newData);
@@ -64,7 +64,7 @@ interface newData extends Omit<Grocery, 'amount' | 'isChecked' | 'id'> {
     isChecked?: boolean,
 }
 
-export async function edit(id: Pick<Grocery, 'id'>, newData: newData): Promise<void> {
+export async function editGrocery(id: Pick<Grocery, 'id'>, newData: newData): Promise<void> {
     const { isChecked, amount, updated_at } = newData;
     try {
         await knex<Grocery>('Grocery')
