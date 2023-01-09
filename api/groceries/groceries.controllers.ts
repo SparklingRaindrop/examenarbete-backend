@@ -1,12 +1,9 @@
 import { Request, Response } from 'express';
+import { v4 as uuid } from 'uuid';
 import { Error, Status } from '../../types/api';
 
-import { add, edit, getAll, getById, remove } from './groceries.model';
-
-interface Data extends Item {
-    amount?: number;
-    isChecked?: boolean;
-}
+import { addItem, getItemByName } from '../items/item.model';
+import { add, edit, getAll, getGrocery, remove } from './groceries.model';
 
 export async function getGroceries(_: Request, res: Response): Promise<void> {
     const data = await getAll();
@@ -18,48 +15,69 @@ export async function getGroceries(_: Request, res: Response): Promise<void> {
 }
 
 export async function removeGrocery(req: Request, res: Response): Promise<void> {
-    const { itemId } = req.params;
-    await remove(itemId)
+    const { id } = req.params;
+    await remove(id as unknown as Pick<Grocery, 'id'>)
         .then(() => res.status(Status.NoContent).send())
         .catch(() => res.status(Status.BadRequest).send());
 }
 
-// TODO: check if the requested item exists
-// TODO: it has to sum up
+// TODO: this has to be updated later. Item should be added by ID
 export async function addGrocery(req: Request, res: Response): Promise<void> {
-    const { id, amount }: Data = req.body;
-
-    const existingData = await getById(id);
-    if (!amount) {
+    const { name, amount, isChecked, updated_at } = req.body;
+    if (typeof amount === 'undefined') {
         res.status(Status.BadRequest).send({
             error: Error.MissingData,
         });
         return;
     }
-    if (existingData) {
-        res.status(Status.BadRequest).send({
-            error: Error.AlreadyExist,
-            message: 'Try again with POST or PATCH method to update.'
-        });
-        return;
+
+    // TODO: Item should be found by ID, NOT NAME
+    // FROM HERE
+    const targetItem = await getItemByName(name as unknown as Pick<Item, 'name'>);
+    let item_id = '';
+    if (!targetItem) {
+        const newItem = {
+            id: uuid(),
+            name: name,
+        };
+        const addedItem = await addItem(newItem);
+        if (addedItem) {
+            item_id = addedItem.id;
+        } else {
+            res.status(Status.BadRequest).send({
+                error: Error.Unsuccessful,
+            });
+        }
+    } else {
+        item_id = targetItem.id;
     }
+    // UNTIL HERE
 
     const newData = {
-        item_id: id,
-        amount: amount,
-        updated_at: new Date(),
-        isChecked: false
+        id: uuid(),
+        item_id: item_id as unknown as Pick<Item, 'id'>,
+        amount: amount || 0,
+        updated_at: updated_at || new Date(),
+        isChecked: isChecked || false,
     };
+
     await add(newData)
         .then(() => res.status(Status.Created).send())
         .catch(() => res.status(Status.BadRequest).send());
 }
 
-export async function updateGrocery(req: Request, res: Response): Promise<void> {
-    const { itemId: id } = req.params;
-    const { amount, isChecked }: Data = req.body;
 
-    const existingData = await getById(id);
+interface Data extends Omit<Item, 'id'> {
+    amount?: number;
+    isChecked?: boolean;
+    item_id: Pick<Item, 'id'>;
+}
+
+export async function updateGrocery(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    const { amount, isChecked, item_id, name }: Data = req.body;
+
+    const existingData = await getGrocery(id as unknown as Pick<Grocery, 'id'>);
     if (!existingData) {
         res.status(Status.NotFound).send({
             error: 'The requested item doesn\'t exist.'
@@ -68,12 +86,14 @@ export async function updateGrocery(req: Request, res: Response): Promise<void> 
     }
 
     const newData = {
-        item_id: id,
+        item_id: item_id as unknown as Pick<Item, 'id'>,
+        updated_at: new Date(),
+        name,
         amount,
         isChecked,
-        updated_at: new Date(),
     };
-    await edit(newData)
+
+    await edit(id as unknown as Pick<Grocery, 'id'>, newData)
         .then(() => res.status(Status.Succuss).send())
         .catch(() => res.status(Status.BadRequest).send());
 }

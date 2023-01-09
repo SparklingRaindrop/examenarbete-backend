@@ -4,8 +4,8 @@ import express from 'express';
 const route = express.Router();
 
 route.get('/', getGroceries);
-route.delete('/:itemId', removeGrocery);
 route.post('/', addGrocery);
-route.patch('/:itemId', updateGrocery);
+route.delete('/:id', removeGrocery);
+route.patch('/:id', updateGrocery);
 
 export { route as groceriesRoute };

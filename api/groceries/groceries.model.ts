@@ -1,35 +1,36 @@
 import knex from '../../knex/knex';
-import { Grocery, GroceryItem } from '../../types/grocery';
 
-interface newData {
-    item_id: string,
-    updated_at: Date,
-    amount?: number,
-    isChecked?: boolean,
-}
-
-export async function getAll(): Promise<Grocery | undefined> {
+export async function getAll(): Promise<Grocery[] | undefined> {
     try {
-        return await knex<Grocery>('Item')
-            .select('Item.*', 'Grocery.*')
+        return await knex<Grocery[]>('Grocery')
+            .select('Grocery.*', 'Item.id as item_id', 'Item.name as item_name')
             .innerJoin(
-                'Grocery',
+                'Item',
                 'item_id',
                 '=',
                 'Item.id'
-            )
-            .from('Item');
+            );
     } catch (error) {
         console.error(error);
     }
     return;
 }
 
-export async function getById(item_id: string): Promise<GroceryItem | undefined> {
+type GroceryResponse = {
+    name: Pick<Item, 'name'>
+} & Grocery;
+
+export async function getGrocery(id: Pick<Grocery, 'id'>): Promise<GroceryResponse | undefined> {
     try {
-        return knex<GroceryItem>('Grocery')
-            .select('*')
-            .where('item_id', item_id)
+        return knex<GroceryResponse>('Grocery')
+            .select('Grocery.*', 'Item.name as item_name')
+            .innerJoin(
+                'Item',
+                'Item.id',
+                '=',
+                'item_id'
+            )
+            .where('Grocery.id', id)
             .first();
     } catch (error) {
         console.error(error);
@@ -37,10 +38,10 @@ export async function getById(item_id: string): Promise<GroceryItem | undefined>
     return;
 }
 
-export async function remove(item_id: string): Promise<void | undefined> {
+export async function remove(id: Pick<Grocery, 'id'>): Promise<void | undefined> {
     try {
-        await knex<Grocery>('Grocery')
-            .where('item_id', item_id)
+        await knex<Grocery[]>('Grocery')
+            .where('id', id)
             .del();
     } catch (error) {
         console.error(error);
@@ -48,9 +49,9 @@ export async function remove(item_id: string): Promise<void | undefined> {
     return;
 }
 
-export async function add(newData: GroceryItem): Promise<void> {
+export async function add(newData: Exclude<Grocery, 'id'>): Promise<void> {
     try {
-        await knex<GroceryItem>('Grocery')
+        await knex<Grocery>('Grocery')
             .insert(newData);
     } catch (error) {
         console.error(error);
@@ -58,11 +59,16 @@ export async function add(newData: GroceryItem): Promise<void> {
     return;
 }
 
-export async function edit(newData: newData): Promise<void> {
-    const { isChecked, amount, item_id, updated_at } = newData;
+interface newData extends Omit<Grocery, 'amount' | 'isChecked' | 'id'> {
+    amount?: number,
+    isChecked?: boolean,
+}
+
+export async function edit(id: Pick<Grocery, 'id'>, newData: newData): Promise<void> {
+    const { isChecked, amount, updated_at } = newData;
     try {
-        await knex<GroceryItem>('Grocery')
-            .where('item_id', item_id)
+        await knex<Grocery>('Grocery')
+            .where('id', id)
             .update({
                 amount,
                 isChecked,
