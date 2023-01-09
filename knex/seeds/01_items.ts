@@ -1,5 +1,4 @@
-import { Knex } from "knex";
-import { v4 as uuidv4 } from 'uuid';
+import { Knex } from 'knex';
 
 export async function seed(knex: Knex): Promise<void> {
     // Deletes ALL existing entries
@@ -11,4 +10,4 @@ export async function seed(knex: Knex): Promise<void> {
         { id: 2, name: 'onions' },
         { id: 3, name: 'spaghetti' }
     ]);
-};
+}
