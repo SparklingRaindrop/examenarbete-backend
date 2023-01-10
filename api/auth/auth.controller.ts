@@ -3,19 +3,27 @@ import { Md5 } from 'ts-md5';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
-import { Status } from '../../types/api';
+import Status from '../../types/api';
 import { getUser } from './auth.model';
 
 dotenv.config();
 
-function generateToken(user: User) {
+type UserData = Omit<User, 'password' | 'email'> & { password?: string, email?: string };
+
+function generateToken(data: Omit<User, 'password' | 'email'>) {
     if (!process.env.SECRET_KEY) {
         throw new Error('Set SECRET_KY for generating access tokens');
     }
-    return jwt.sign(user,
+    return jwt.sign(data,
         process.env.SECRET_KEY,
         { expiresIn: process.env.TOKEN_DURATION || '1800s' }
     );
+}
+
+function getExpiredAt() {
+    const time = new Date();
+    const limit = process.env.TOKEN_DURATION ? Number(process.env.TOKEN_DURATION.replace(/[^0-9]/g, '')) : 1800;
+    return time.setSeconds(time.getSeconds() + limit);
 }
 
 export async function login(req: Request, res: Response): Promise<void> {
@@ -47,8 +55,13 @@ export async function login(req: Request, res: Response): Promise<void> {
         res.status(Status.Forbidden).send({
             error: 'Password is incorrect.'
         });
+        return;
     }
 
-    const token = generateToken(user);
-    res.json({ token });
+    const userData: UserData = { ...user };
+    delete userData.password;
+    delete userData.email;
+
+    const token = generateToken(userData);
+    res.status(Status.Created).json({ token, expires: getExpiredAt() });
 }
