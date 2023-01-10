@@ -5,6 +5,8 @@ import bodyParser from 'body-parser';
 
 import { groceriesRoute } from '../api/groceries';
 import { authRoute } from '../api/auth/auth.routes';
+import { checkToken } from '../middleware/auth';
+
 dotenv.config();
 
 export class Server {
@@ -23,7 +25,7 @@ export class Server {
         this.app.use(cors(corsOptions));
 
         // routes
-        this.app.use('/groceries', groceriesRoute);
+        this.app.use('/groceries', checkToken, groceriesRoute);
         this.app.use('/auth', authRoute);
 
         this.app.listen(this.port, (err?: Error) => {
