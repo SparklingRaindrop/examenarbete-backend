@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 
 import { groceriesRoute } from '../api/groceries';
+import { authRoute } from '../api/auth/auth.routes';
 dotenv.config();
 
 export class Server {
@@ -23,6 +24,7 @@ export class Server {
 
         // routes
         this.app.use('/groceries', groceriesRoute);
+        this.app.use('/auth', authRoute);
 
         this.app.listen(this.port, (err?: Error) => {
             if (err) {
