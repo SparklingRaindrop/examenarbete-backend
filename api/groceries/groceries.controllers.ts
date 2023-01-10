@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { v4 as uuid } from 'uuid';
-import { Error, Status } from '../../types/api';
+import Status from '../../types/api';
+import Error from '../../types/error';
 
 import { addItem, editItem, getItem, getItemByName } from '../items/item.model';
 import { addGrocery, editGrocery, getGroceries, getGrocery, removeGrocery } from './groceries.model';
