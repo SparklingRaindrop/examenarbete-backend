@@ -4,6 +4,7 @@ import Error from '../../types/error';
 import { v4 as uuid } from 'uuid';
 import { getRecipesById } from '../recipes/recipes.model';
 import { addPlan, getPlan, getPlans, NewPlanData, removePlan } from './plans.model';
+import { MEALS, MealType } from '../../types/unions';
 
 function removeTime(range: { from: Date, to: Date }) {
     const start = new Date(range.from);
@@ -124,9 +125,17 @@ export async function add(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    if (!isValidDate(date) || !isValidDate(updated_at) || !isMealType(type)) {
+    if (!isValidDate(date) || (updated_at && !isValidDate(updated_at)) || !isMealType(type)) {
         res.status(Status.BadRequest).send({
             error: Error.InvalidDataType,
+        });
+        return;
+    }
+
+    const targetRecipe = await getRecipesById(id, recipe_id);
+    if (!targetRecipe) {
+        res.status(Status.BadRequest).send({
+            error: 'Invalid recipe_id.',
         });
         return;
     }
