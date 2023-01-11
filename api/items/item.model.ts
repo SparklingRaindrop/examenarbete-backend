@@ -1,7 +1,7 @@
 import knex from '../../knex/knex';
 
-export function getItems(userId: Pick<User, 'id'>): Promise<Item | undefined> {
-    return knex<Item>('Item')
+export function getItems(userId: Pick<User, 'id'>): Promise<Item[] | undefined> {
+    return knex<Item[]>('Item')
         .leftJoin(
             'Unit',
             'Item.unit_id',
