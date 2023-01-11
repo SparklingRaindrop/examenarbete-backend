@@ -23,7 +23,7 @@ export function checkToken(req: Request, res: Response, next: NextFunction) {
                     error: 'Failed to authenticate user.'
                 });
             } else {
-                req.user = { id: (<{ id: string }>decoded).id };
+                req.user = { id: (<{ id: Pick<User, 'id'> }>decoded).id };
                 next();
             }
         });
