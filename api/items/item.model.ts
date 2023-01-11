@@ -1,15 +1,16 @@
 import knex from '../../knex/knex';
 
-export async function getItems(userId: Pick<User, 'id'>): Promise<Item | undefined> {
-    try {
-        return knex<Item>('Item')
-            .where('user_id', null)
-            .orWhere('user_id', userId)
-            .select('id', 'name');
-    } catch (error) {
-        console.error(error);
-        return;
-    }
+export function getItems(userId: Pick<User, 'id'>): Promise<Item | undefined> {
+    return knex<Item>('Item')
+        .leftJoin(
+            'Unit',
+            'Item.unit_id',
+            '=',
+            'Unit.id'
+        )
+        .where('user_id', null)
+        .orWhere('user_id', userId)
+        .select('Item.id', 'Item.name', 'Unit.name as unit');
 }
 
 export async function getItem(userId: Pick<User, 'id'>, itemId: Pick<Item, 'id'>): Promise<Item | undefined> {

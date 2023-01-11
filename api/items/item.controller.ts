@@ -8,7 +8,8 @@ export async function getAll(req: Request, res: Response): Promise<void> {
     try {
         const data = await getItems(id);
         res.json(data);
-    } catch (err) {
+    } catch (error) {
+        console.error(error);
         res.status(Status.ServerError).send({
             error: 'Something occurred on the server.'
         });
