@@ -8,9 +8,7 @@ import { getUser } from './auth.model';
 
 dotenv.config();
 
-type UserData = Omit<User, 'password' | 'email'> & { password?: string, email?: string };
-
-function generateToken(data: Omit<User, 'password' | 'email'>) {
+function generateToken(data: Pick<User, 'id'>) {
     if (!process.env.SECRET_KEY) {
         throw new Error('Set SECRET_KY for generating access tokens');
     }
@@ -58,9 +56,7 @@ export async function login(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    const userData: UserData = { ...user };
-    delete userData.password;
-    delete userData.email;
+    const userData: Pick<User, 'id'> = { id: user.id };
 
     const token = generateToken(userData);
     res.status(Status.Created).json({ token, expires: getExpiredAt() });
