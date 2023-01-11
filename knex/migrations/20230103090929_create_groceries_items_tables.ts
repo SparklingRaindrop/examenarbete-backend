@@ -23,6 +23,51 @@ export async function up(knex: Knex): Promise<void> {
             table.string('user_id').notNullable();
             table.foreign('item_id').references('Item.id');
             table.foreign('user_id').references('User.id');
+        })
+        .createTable('Stock', function (table) {
+            table.string('id').notNullable().primary();
+            table.string('user_id');
+            table.foreign('user_id').references('User.id');
+        })
+        .createTable('Plan', function (table) {
+            table.string('id').notNullable().primary();
+            table.string('user_id');
+            table.foreign('user_id').references('User.id');
+        })
+        .createTable('Recipe', function (table) {
+            table.string('id').notNullable().primary();
+            table.string('user_id');
+            table.foreign('user_id').references('User.id');
+        })
+        .createTable('Category', function (table) {
+            table.string('id').notNullable().primary();
+            table.string('user_id');
+            table.foreign('user_id').references('User.id');
+        })
+        .createTable('Instruction', function (table) {
+            table.string('id').notNullable().primary();
+            table.string('user_id');
+            table.foreign('user_id').references('User.id');
+        })
+        .createTable('Ingredient', function (table) {
+            table.string('id').notNullable().primary();
+            table.string('user_id');
+            table.foreign('user_id').references('User.id');
+        })
+        .createTable('Custom_measurement', function (table) {
+            table.string('id').notNullable().primary();
+            table.string('user_id');
+            table.foreign('user_id').references('User.id');
+        })
+        .createTable('Default_measurement', function (table) {
+            table.string('id').notNullable().primary();
+            table.string('user_id');
+            table.foreign('user_id').references('User.id');
+        })
+        .createTable('Measurement', function (table) {
+            table.string('id').notNullable().primary();
+            table.string('user_id');
+            table.foreign('user_id').references('User.id');
         });
 }
 
@@ -30,6 +75,15 @@ export async function down(knex: Knex): Promise<void> {
     await knex.schema
         .dropTable('User')
         .dropTable('Item')
-        .dropTable('Grocery');
+        .dropTable('Grocery')
+        .dropTable('Stock')
+        .dropTable('Plan')
+        .dropTable('Recipe')
+        .dropTable('Category')
+        .dropTable('Instruction')
+        .dropTable('Ingredient')
+        .dropTable('Custom_measurement')
+        .dropTable('Default_measurement')
+        .dropTable('Measurement');
 }
 
