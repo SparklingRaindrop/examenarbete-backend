@@ -103,7 +103,7 @@ export async function remove(req: Request, res: Response): Promise<void> {
     try {
         const deletedCount = await removePlan(id, planId as unknown as Pick<Plan, 'id'>);
         if (!deletedCount) {
-            res.status(Status.BadRequest).send();
+            res.status(Status.NotFound).send();
         }
         res.status(Status.NoContent).send();
     } catch (error) {

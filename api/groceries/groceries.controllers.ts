@@ -30,7 +30,7 @@ export async function remove(req: Request, res: Response): Promise<void> {
     try {
         const deletedCount = await removeGrocery(id, groceryId as unknown as Pick<Grocery, 'id'>);
         if (!deletedCount) {
-            res.status(Status.BadRequest).send();
+            res.status(Status.NotFound).send();
         }
         res.status(Status.NoContent).send();
     } catch (err) {
