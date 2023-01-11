@@ -63,7 +63,7 @@ export async function getAll(req: Request, res: Response): Promise<void> {
     } catch (error) {
         console.error(error);
         res.status(Status.ServerError).send({
-            error: 'Something occurred on the server.'
+            error: Error.SomethingHappened,
         });
     }
 }
@@ -107,7 +107,9 @@ export async function remove(req: Request, res: Response): Promise<void> {
         res.status(Status.NoContent).send();
     } catch (error) {
         console.error(error);
-        res.status(Status.ServerError).send();
+        res.status(Status.ServerError).send({
+            error: Error.SomethingHappened,
+        });
     }
 }
 
@@ -142,6 +144,8 @@ export async function add(req: Request, res: Response): Promise<void> {
         res.status(Status.Created).send(addedData);
     } catch (error) {
         console.error(error);
-        res.status(Status.ServerError).send();
+        res.status(Status.ServerError).send({
+            error: Error.SomethingHappened,
+        });
     }
 }
