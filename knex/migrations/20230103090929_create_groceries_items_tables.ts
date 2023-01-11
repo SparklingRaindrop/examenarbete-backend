@@ -33,9 +33,7 @@ export async function up(knex: Knex): Promise<void> {
         .createTable('Recipe', function (table) {
             table.string('id').notNullable().primary();
             table.string('title').notNullable();
-            table.string('category_id');
             table.string('user_id');
-            table.foreign('category_id').references('Category.id');
             table.foreign('user_id').references('User.id');
         })
         .createTable('Category', function (table) {
@@ -43,6 +41,12 @@ export async function up(knex: Knex): Promise<void> {
             table.string('name').notNullable().unique();
             table.string('user_id');
             table.foreign('user_id').references('User.id');
+        })
+        .createTable('Category_list', function (table) {
+            table.string('category_id');
+            table.string('recipe_id');
+            table.foreign('recipe_id').references('Recipe.id');
+            table.foreign('category_id').references('Category.id');
         })
         .createTable('Stock', function (table) {
             table.string('id').notNullable().primary();
