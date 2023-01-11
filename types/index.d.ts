@@ -40,5 +40,5 @@ interface Plan {
     updated_at: Date;
     date: Date;
     type: string;
-    recipe: Omit<Recipe, 'user_id'>[];
+    recipe: Omit<Recipe, 'user_id'>;
 }

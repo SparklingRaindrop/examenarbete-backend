@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Status from '../../types/api';
 import Error from '../../types/error';
 import { v4 as uuid } from 'uuid';
-import { getRecipesById } from '../recipes/recipes.model';
+import { getRecipe } from '../recipes/recipes.model';
 import { addPlan, getPlan, getPlans, NewPlanData, removePlan } from './plans.model';
 import { MEALS, MealType } from '../../types/unions';
 
@@ -50,11 +50,14 @@ export async function getAll(req: Request, res: Response): Promise<void> {
         const result = await Promise.all([...plans].map(async (plan) => {
             const { recipe_id } = plan;
             if (!recipe_id) {
-                plan.recipe = [];
-                return plan;
+                console.error('A plan should contain recipe_id.');
+                res.status(Status.ServerError).send({
+                    error: Error.SomethingHappened,
+                });
+                return;
             }
 
-            const recipe = await getRecipesById(id, recipe_id);
+            const recipe = await getRecipe(id, recipe_id);
             plan.recipe = recipe;
             delete plan.recipe_id;
             return plan;
@@ -79,9 +82,13 @@ export async function getOne(req: Request, res: Response): Promise<void> {
         // Adding recipe data
         const { recipe_id } = plan;
         if (!recipe_id) {
-            plan.recipe = [];
+            console.error('A plan should contain recipe_id.');
+            res.status(Status.ServerError).send({
+                error: Error.SomethingHappened,
+            });
+            return;
         } else {
-            const recipe = await getRecipesById(id, recipe_id);
+            const recipe = await getRecipe(id, recipe_id);
             plan.recipe = recipe;
             delete plan.recipe_id;
         }
@@ -132,7 +139,7 @@ export async function add(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    const targetRecipe = await getRecipesById(id, recipe_id);
+    const targetRecipe = await getRecipe(id, recipe_id);
     if (!targetRecipe) {
         res.status(Status.BadRequest).send({
             error: 'Invalid recipe_id.',
