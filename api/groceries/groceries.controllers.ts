@@ -18,7 +18,7 @@ export async function getAll(req: Request, res: Response): Promise<void> {
         res.json(parsedData);
     } catch (err) {
         res.status(Status.ServerError).send({
-            error: 'Something occurred on the server.'
+            error: Error.SomethingHappened,
         });
     }
 }
@@ -34,7 +34,9 @@ export async function remove(req: Request, res: Response): Promise<void> {
         }
         res.status(Status.NoContent).send();
     } catch (err) {
-        res.status(Status.BadRequest).send();
+        res.status(Status.ServerError).send({
+            error: Error.SomethingHappened,
+        });
     }
 }
 
@@ -65,7 +67,7 @@ export async function add(req: Request, res: Response): Promise<void> {
                 item_id = addedItem.id;
             } else {
                 res.status(Status.BadRequest).send({
-                    error: Error.Unsuccessful,
+                    error: Error.SomethingHappened,
                 });
             }
         } else {
@@ -85,8 +87,10 @@ export async function add(req: Request, res: Response): Promise<void> {
         res.status(Status.Created).send();
 
     } catch (error) {
-        res.status(Status.ServerError).send();
         console.error(error);
+        res.status(Status.ServerError).send({
+            error: Error.SomethingHappened,
+        });
     }
 }
 
@@ -138,7 +142,9 @@ export async function update(req: Request, res: Response): Promise<void> {
         res.status(Status.Succuss).send();
 
     } catch (error) {
-        res.status(Status.ServerError).send();
+        res.status(Status.ServerError).send({
+            error: Error.SomethingHappened,
+        });
         console.error(error);
     }
 }
