@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import Status from '../../types/api';
-import { getRecipes, getRecipesById } from '../recipes/recipes.model';
-import { getPlan, getPlans, removePlan } from './plans.model';
+import Error from '../../types/error';
+import { v4 as uuid } from 'uuid';
+import { getRecipesById } from '../recipes/recipes.model';
+import { addPlan, getPlan, getPlans, NewPlanData, removePlan } from './plans.model';
 
 function removeTime(range: { from: Date, to: Date }) {
     const start = new Date(range.from);
@@ -24,6 +26,10 @@ function isValidDate(date: Date) {
     return new Date(date).toString() !== 'Invalid Date';
 }
 
+function isMealType(mealType: string): mealType is MealType {
+    return MEALS.includes(mealType as MealType);
+}
+
 export async function getAll(req: Request, res: Response): Promise<void> {
     const { id } = req.user;
     const { range } = req.body;
@@ -31,7 +37,7 @@ export async function getAll(req: Request, res: Response): Promise<void> {
     // Data validation
     if (range && (!isValidDate(range.from) || !isValidDate(range.from))) {
         res.status(Status.BadRequest).send({
-            error: 'Received invalid type of data.'
+            error: Error.InvalidDataType,
         });
         return;
     }
@@ -84,7 +90,7 @@ export async function getOne(req: Request, res: Response): Promise<void> {
     } catch (error) {
         console.error(error);
         res.status(Status.ServerError).send({
-            error: 'Something occurred on the server.'
+            error: Error.SomethingHappened,
         });
     }
 }
@@ -99,7 +105,43 @@ export async function remove(req: Request, res: Response): Promise<void> {
             res.status(Status.BadRequest).send();
         }
         res.status(Status.NoContent).send();
-    } catch (err) {
-        res.status(Status.BadRequest).send();
+    } catch (error) {
+        console.error(error);
+        res.status(Status.ServerError).send();
+    }
+}
+
+export async function add(req: Request, res: Response): Promise<void> {
+    const { id } = req.user;
+    const { date, type, recipe_id, updated_at } = req.body;
+
+    if (typeof date === 'undefined' || typeof recipe_id === 'undefined' || typeof type === 'undefined') {
+        res.status(Status.BadRequest).send({
+            error: Error.MissingData,
+        });
+        return;
+    }
+
+    if (!isValidDate(date) || !isValidDate(updated_at) || !isMealType(type)) {
+        res.status(Status.BadRequest).send({
+            error: Error.InvalidDataType,
+        });
+        return;
+    }
+
+    const newData: NewPlanData = {
+        date,
+        type,
+        recipe_id,
+        updated_at: updated_at || new Date(),
+        id: uuid(),
+    };
+
+    try {
+        const addedData = await addPlan(id, newData);
+        res.status(Status.Created).send(addedData);
+    } catch (error) {
+        console.error(error);
+        res.status(Status.ServerError).send();
     }
 }

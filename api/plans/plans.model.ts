@@ -29,3 +29,16 @@ export function removePlan(userId: Pick<User, 'id'>, targetId: Pick<Plan, 'id'>)
         .andWhere('user_id', userId)
         .del();
 }
+
+export interface NewPlanData extends Omit<Plan, 'recipe'> {
+    recipe_id: Pick<Recipe, 'id'>
+}
+
+export async function addPlan(userId: Pick<User, 'id'>, newData: NewPlanData): Promise<NewPlanData> {
+    return knex<NewPlanData & { user_id: Pick<User, 'id'> }>('Plan')
+        .insert({
+            ...newData,
+            user_id: userId,
+        })
+        .then(() => newData);
+}
