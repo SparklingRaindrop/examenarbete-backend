@@ -6,24 +6,41 @@ import Error from '../../types/error';
 import { addItem, editItem, getItem, getItemByName } from '../items/item.model';
 import { addGrocery, editGrocery, getGroceries, getGrocery, removeGrocery } from './groceries.model';
 
-export async function getAll(_: Request, res: Response): Promise<void> {
-    const data = await getGroceries();
-    const parsedData = data?.map(item => {
-        item.isChecked = item.isChecked === 0 ? false : true;
-        return item;
-    });
-    res.json(parsedData);
+export async function getAll(req: Request, res: Response): Promise<void> {
+    const { id } = req.user;
+
+    try {
+        const data = await getGroceries(id);
+        const parsedData = data?.map(item => {
+            item.isChecked = item.isChecked === 0 ? false : true;
+            return item;
+        });
+        res.json(parsedData);
+    } catch (err) {
+        res.status(Status.ServerError).send({
+            error: 'Something occurred on the server.'
+        });
+    }
 }
 
 export async function remove(req: Request, res: Response): Promise<void> {
-    const { id } = req.params;
-    await removeGrocery(id as unknown as Pick<Grocery, 'id'>)
-        .then(() => res.status(Status.NoContent).send())
-        .catch(() => res.status(Status.BadRequest).send());
+    const { id } = req.user;
+    const { id: groceryId } = req.params;
+
+    try {
+        const deletedCount = await removeGrocery(id, groceryId as unknown as Pick<Grocery, 'id'>);
+        if (!deletedCount) {
+            res.status(Status.BadRequest).send();
+        }
+        res.status(Status.NoContent).send();
+    } catch (err) {
+        res.status(Status.BadRequest).send();
+    }
 }
 
 // TODO: this has to be updated later. Item should be added by ID
 export async function add(req: Request, res: Response): Promise<void> {
+    const { id } = req.user;
     const { item_name, amount, isChecked, updated_at } = req.body;
     if (typeof amount === 'undefined' || typeof item_name === 'undefined') {
         res.status(Status.BadRequest).send({
@@ -40,7 +57,7 @@ export async function add(req: Request, res: Response): Promise<void> {
         const newItem = {
             id: uuid(),
             name: item_name,
-            user_id: 'test' as unknown as Pick<User, 'id'>,
+            user_id: id,
         };
         const addedItem = await addItem(newItem);
         if (addedItem) {
@@ -76,10 +93,11 @@ interface Data {
 }
 
 export async function update(req: Request, res: Response): Promise<void> {
-    const { id } = req.params;
+    const { id } = req.user;
+    const { id: groceryId } = req.params;
     const { amount, isChecked, item_name }: Data = req.body;
 
-    const existingData = await getGrocery(id as unknown as Pick<Grocery, 'id'>);
+    const existingData = await getGrocery(id, groceryId as unknown as Pick<Grocery, 'id'>);
     if (!existingData) {
         res.status(Status.NotFound).send({
             error: 'The requested item doesn\'t exist.'
@@ -87,7 +105,7 @@ export async function update(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    const targetItem = await getItem(existingData.item_id);
+    const targetItem = await getItem(existingData.item_id, id);
     if (item_name && !targetItem?.user_id) {
         res.status(Status.BadRequest).send({
             error: 'You cannot change default item names'
@@ -107,7 +125,7 @@ export async function update(req: Request, res: Response): Promise<void> {
     };
 
     if (amount || isChecked) {
-        await editGrocery(id as unknown as Pick<Grocery, 'id'>, newData)
+        await editGrocery(groceryId as unknown as Pick<Grocery, 'id'>, newData)
             .then(() => res.status(Status.Succuss).send())
             .catch(() => res.status(Status.BadRequest).send());
     }
