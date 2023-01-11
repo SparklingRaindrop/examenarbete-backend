@@ -49,40 +49,45 @@ export async function add(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    // TODO: Item should be found by ID, NOT NAME
-    // FROM HERE
-    const targetItem = await getItemByName(item_name as unknown as Pick<Item, 'name'>);
-    let item_id = '';
-    if (!targetItem) {
-        const newItem = {
-            id: uuid(),
-            name: item_name,
-            user_id: id,
-        };
-        const addedItem = await addItem(newItem);
-        if (addedItem) {
-            item_id = addedItem.id;
+    try {
+        // TODO: Item should be found by ID, NOT NAME
+        // FROM HERE
+        const targetItem = await getItemByName(item_name as unknown as Pick<Item, 'name'>);
+        let item_id = '';
+        if (!targetItem) {
+            const newItem = {
+                id: uuid(),
+                name: item_name,
+                user_id: id,
+            };
+            const addedItem = await addItem(newItem);
+            if (addedItem) {
+                item_id = addedItem.id;
+            } else {
+                res.status(Status.BadRequest).send({
+                    error: Error.Unsuccessful,
+                });
+            }
         } else {
-            res.status(Status.BadRequest).send({
-                error: Error.Unsuccessful,
-            });
+            item_id = targetItem.id;
         }
-    } else {
-        item_id = targetItem.id;
+        // UNTIL HERE
+
+        const newData = {
+            id: uuid(),
+            item_id: item_id as unknown as Pick<Item, 'id'>,
+            amount: amount || 0,
+            updated_at: updated_at || new Date(),
+            isChecked: isChecked || false,
+        };
+
+        await addGrocery(newData);
+        res.status(Status.Created).send();
+
+    } catch (error) {
+        res.status(Status.ServerError).send();
+        console.error(error);
     }
-    // UNTIL HERE
-
-    const newData = {
-        id: uuid(),
-        item_id: item_id as unknown as Pick<Item, 'id'>,
-        amount: amount || 0,
-        updated_at: updated_at || new Date(),
-        isChecked: isChecked || false,
-    };
-
-    await addGrocery(newData)
-        .then(() => res.status(Status.Created).send())
-        .catch(() => res.status(Status.BadRequest).send());
 }
 
 interface Data {
@@ -97,37 +102,43 @@ export async function update(req: Request, res: Response): Promise<void> {
     const { id: groceryId } = req.params;
     const { amount, isChecked, item_name }: Data = req.body;
 
-    const existingData = await getGrocery(id, groceryId as unknown as Pick<Grocery, 'id'>);
-    if (!existingData) {
-        res.status(Status.NotFound).send({
-            error: 'The requested item doesn\'t exist.'
-        });
-        return;
-    }
+    try {
+        const existingData = await getGrocery(id, groceryId as unknown as Pick<Grocery, 'id'>);
+        if (!existingData) {
+            res.status(Status.NotFound).send({
+                error: 'The requested item doesn\'t exist.'
+            });
+            return;
+        }
 
-    const targetItem = await getItem(id, existingData.item_id);
-    if (item_name && !targetItem?.user_id) {
-        res.status(Status.BadRequest).send({
-            error: 'You cannot change default item names'
-        });
-        return;
-    }
+        const targetItem = await getItem(id, existingData.item_id);
+        if (item_name && !targetItem?.user_id) {
+            res.status(Status.BadRequest).send({
+                error: 'You cannot change default item names'
+            });
+            return;
+        }
 
-    if (item_name) {
-        await editItem(id, existingData.item_id, item_name);
-    }
+        if (item_name) {
+            await editItem(id, existingData.item_id, item_name);
+        }
 
-    const newData = {
-        item_id: existingData.item_id as unknown as Pick<Item, 'id'>,
-        updated_at: new Date(),
-        amount,
-        isChecked,
-    };
+        const newData = {
+            item_id: existingData.item_id as unknown as Pick<Item, 'id'>,
+            updated_at: new Date(),
+            amount,
+            isChecked,
+        };
 
-    if (amount || isChecked) {
-        await editGrocery(groceryId as unknown as Pick<Grocery, 'id'>, newData)
-            .then(() => res.status(Status.Succuss).send())
-            .catch(() => res.status(Status.BadRequest).send());
+        if (amount || isChecked) {
+            await editGrocery(groceryId as unknown as Pick<Grocery, 'id'>, newData)
+                .then(() => res.status(Status.Succuss).send())
+                .catch(() => res.status(Status.BadRequest).send());
+        }
+        res.status(Status.Succuss).send();
+
+    } catch (error) {
+        res.status(Status.ServerError).send();
+        console.error(error);
     }
-    res.status(Status.Succuss).send();
 }
