@@ -114,7 +114,7 @@ export async function update(req: Request, res: Response): Promise<void> {
     }
 
     if (item_name) {
-        await editItem(existingData.item_id, item_name);
+        await editItem(id, existingData.item_id, item_name);
     }
 
     const newData = {
