@@ -33,5 +33,12 @@ interface Recipe {
 interface Category {
     id: string;
     name: string;
-    user_id: Pick<User, 'id'>;
+}
+
+interface Plan {
+    id: string;
+    updated_at: Date;
+    date: Date;
+    type: string;
+    recipe: Omit<Recipe, 'user_id'>[];
 }
