@@ -14,3 +14,10 @@ export function getPlans(userId: Pick<User, 'id'>, range: { from: Date, to: Date
         .whereBetween('date', [range.from, range.to])
         .select('id', 'updated_at', 'date', 'type', 'recipe_id');
 }
+
+export function removePlan(userId: Pick<User, 'id'>, targetId: Pick<Plan, 'id'>): Promise<number> {
+    return knex<Plan>('Plan')
+        .where('id', targetId)
+        .andWhere('user_id', userId)
+        .del();
+}

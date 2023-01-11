@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Status from '../../types/api';
-import { getRecipes, getRecipesById } from '../recipes/recipes.model';
-import { getPlans } from './plans.model';
+import { getRecipesById } from '../recipes/recipes.model';
+import { getPlans, removePlan } from './plans.model';
 
 function removeTime(range: { from: Date, to: Date }) {
     const start = new Date(range.from);
@@ -59,5 +59,20 @@ export async function getAll(req: Request, res: Response): Promise<void> {
         res.status(Status.ServerError).send({
             error: 'Something occurred on the server.'
         });
+    }
+}
+
+export async function remove(req: Request, res: Response): Promise<void> {
+    const { id } = req.user;
+    const { id: planId } = req.params;
+
+    try {
+        const deletedCount = await removePlan(id, planId as unknown as Pick<Plan, 'id'>);
+        if (!deletedCount) {
+            res.status(Status.BadRequest).send();
+        }
+        res.status(Status.NoContent).send();
+    } catch (err) {
+        res.status(Status.BadRequest).send();
     }
 }
