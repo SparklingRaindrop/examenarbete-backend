@@ -42,6 +42,3 @@ interface Plan {
     type: string;
     recipe: Omit<Recipe, 'user_id'>[];
 }
-
-const MEALS = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
-type MealType = typeof MEALS[number];
