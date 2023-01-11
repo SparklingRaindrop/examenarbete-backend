@@ -9,8 +9,8 @@ export function getRecipes(userId: Pick<User, 'id'>): Promise<Recipe[]> {
 
 export function getRecipesById(userId: Pick<User, 'id'>, recipe_id: Pick<Recipe, 'id'>): Promise<Recipe[]> {
     return knex<Recipe>('Recipe')
-        .where('id', recipe_id)
         .where('user_id', null)
         .orWhere('user_id', userId)
+        .andWhere('id', recipe_id)
         .select('Recipe.id', 'Recipe.title');
 }
