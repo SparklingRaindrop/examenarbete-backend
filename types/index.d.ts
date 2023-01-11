@@ -23,3 +23,15 @@ interface Unit {
     id: string;
     name: string;
 }
+
+interface Recipe {
+    id: string;
+    title: string;
+    user_id: Pick<User, 'id'>;
+}
+
+interface Category {
+    id: string;
+    name: string;
+    user_id: Pick<User, 'id'>;
+}
