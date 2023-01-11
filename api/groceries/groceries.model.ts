@@ -1,26 +1,29 @@
 import knex from '../../knex/knex';
 
-export async function getGroceries(): Promise<Grocery[] | undefined> {
+const columns = ['Grocery.id', 'item_id', 'updated_at', 'amount', 'isChecked'];
+
+export async function getGroceries(id: Pick<User, 'id'>): Promise<Grocery[] | undefined> {
     try {
-        return await knex<Grocery[]>('Grocery')
-            .select('Grocery.*', 'Item.id as item_id', 'Item.name as item_name')
+        return knex<Grocery[]>('Grocery')
+            .select([...columns, 'Item.id as item_id', 'Item.name as item_name'])
             .innerJoin(
                 'Item',
                 'item_id',
                 '=',
                 'Item.id'
-            );
+            )
+            .where('Grocery.user_id', id);
     } catch (error) {
         console.error(error);
+        return;
     }
-    return;
 }
 
 type GroceryResponse = {
     name: Pick<Item, 'name'>
 } & Grocery;
 
-export async function getGrocery(id: Pick<Grocery, 'id'>): Promise<GroceryResponse | undefined> {
+export async function getGrocery(userId: Pick<User, 'id'>, id: Pick<Grocery, 'id'>): Promise<GroceryResponse | undefined> {
     try {
         return knex<GroceryResponse>('Grocery')
             .select('Grocery.*', 'Item.name as item_name')
@@ -31,22 +34,24 @@ export async function getGrocery(id: Pick<Grocery, 'id'>): Promise<GroceryRespon
                 'item_id'
             )
             .where('Grocery.id', id)
+            .where('Grocery.user_id', userId)
             .first();
     } catch (error) {
         console.error(error);
+        return;
     }
-    return;
 }
 
-export async function removeGrocery(id: Pick<Grocery, 'id'>): Promise<void | undefined> {
+export async function removeGrocery(userId: Pick<User, 'id'>, targetId: Pick<Grocery, 'id'>): Promise<number | undefined> {
     try {
-        await knex<Grocery[]>('Grocery')
-            .where('id', id)
+        return knex<Grocery[]>('Grocery')
+            .where('id', targetId)
+            .where('user_id', userId)
             .del();
     } catch (error) {
         console.error(error);
+        return;
     }
-    return;
 }
 
 export async function addGrocery(newData: Exclude<Grocery, 'id'>): Promise<void> {
@@ -76,6 +81,6 @@ export async function editGrocery(id: Pick<Grocery, 'id'>, newData: newData): Pr
             });
     } catch (error) {
         console.error(error);
+        return;
     }
-    return;
 }
