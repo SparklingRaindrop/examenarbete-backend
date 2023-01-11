@@ -15,6 +15,14 @@ export function getPlans(userId: Pick<User, 'id'>, range: { from: Date, to: Date
         .select('id', 'updated_at', 'date', 'type', 'recipe_id');
 }
 
+export function getPlan(userId: Pick<User, 'id'>, planId: Pick<Plan, 'id'>): Promise<PlanDbData> {
+    return knex<PlanDbData>('Plan')
+        .where('user_id', userId)
+        .andWhere('id', planId)
+        .first()
+        .select('id', 'updated_at', 'date', 'type', 'recipe_id');
+}
+
 export function removePlan(userId: Pick<User, 'id'>, targetId: Pick<Plan, 'id'>): Promise<number> {
     return knex<Plan>('Plan')
         .where('id', targetId)

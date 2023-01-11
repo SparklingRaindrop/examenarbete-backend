@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Status from '../../types/api';
-import { getRecipesById } from '../recipes/recipes.model';
-import { getPlans, removePlan } from './plans.model';
+import { getRecipes, getRecipesById } from '../recipes/recipes.model';
+import { getPlan, getPlans, removePlan } from './plans.model';
 
 function removeTime(range: { from: Date, to: Date }) {
     const start = new Date(range.from);
@@ -54,6 +54,33 @@ export async function getAll(req: Request, res: Response): Promise<void> {
         }));
 
         res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(Status.ServerError).send({
+            error: 'Something occurred on the server.'
+        });
+    }
+}
+
+export async function getOne(req: Request, res: Response): Promise<void> {
+    const { id } = req.user;
+    const { id: planId } = req.params;
+
+    try {
+        const plan = await getPlan(id, planId as unknown as Pick<Plan, 'id'>);
+
+        // Adding recipe data
+        const { recipe_id } = plan;
+        if (!recipe_id) {
+            plan.recipe = [];
+        } else {
+            const recipe = await getRecipesById(id, recipe_id);
+            plan.recipe = recipe;
+            delete plan.recipe_id;
+        }
+
+        res.json(plan);
+
     } catch (error) {
         console.error(error);
         res.status(Status.ServerError).send({
