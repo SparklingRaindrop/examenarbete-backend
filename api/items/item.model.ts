@@ -1,11 +1,11 @@
 import knex from '../../knex/knex';
 
-export async function getItem(itemId: Pick<Item, 'id'>, userId?: Pick<User, 'id'>): Promise<Item | undefined> {
+export async function getItem(userId: Pick<User, 'id'>, itemId: Pick<Item, 'id'>): Promise<Item | undefined> {
     try {
         return knex<Item>('Item')
             .where('id', itemId)
-            .where('user_id', userId)
-            .orWhere('user_id', null)
+            .where('user_id', null)
+            .orWhere('user_id', userId)
             .select('Item.*')
             .first();
     } catch (error) {

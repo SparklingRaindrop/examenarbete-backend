@@ -105,7 +105,7 @@ export async function update(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    const targetItem = await getItem(existingData.item_id, id);
+    const targetItem = await getItem(id, existingData.item_id);
     if (item_name && !targetItem?.user_id) {
         res.status(Status.BadRequest).send({
             error: 'You cannot change default item names'
