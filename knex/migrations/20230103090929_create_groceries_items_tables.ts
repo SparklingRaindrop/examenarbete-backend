@@ -12,6 +12,8 @@ export async function up(knex: Knex): Promise<void> {
             table.string('id').notNullable().primary();
             table.string('name').notNullable().unique();
             table.string('user_id');
+            table.string('unit_id');
+            table.foreign('unit_id').references('Unit.id');
             table.foreign('user_id').references('User.id');
         })
         .createTable('Grocery', function (table) {
@@ -24,23 +26,9 @@ export async function up(knex: Knex): Promise<void> {
             table.foreign('item_id').references('Item.id');
             table.foreign('user_id').references('User.id');
         })
-        .createTable('Measurement', function (table) {
+        .createTable('Unit', function (table) {
             table.string('id').notNullable().primary();
             table.string('name').unique();
-        })
-        .createTable('Default_measurement', function (table) {
-            table.string('item_id').notNullable();
-            table.string('measurement_id').notNullable();
-            table.foreign('item_id').references('Item.id');
-            table.foreign('measurement_id').references('Measurement.id');
-        })
-        .createTable('Custom_measurement', function (table) {
-            table.string('user_id').notNullable();
-            table.string('item_id').notNullable();
-            table.string('measurement_id');
-            table.foreign('item_id').references('Item.id');
-            table.foreign('measurement_id').references('Measurement.id');
-            table.foreign('user_id').references('User.id');
         })
         .createTable('Stock', function (table) {
             table.string('id').notNullable().primary();
@@ -79,14 +67,12 @@ export async function down(knex: Knex): Promise<void> {
         .dropTable('User')
         .dropTable('Item')
         .dropTable('Grocery')
+        .dropTable('Measurement')
         .dropTable('Stock')
         .dropTable('Plan')
         .dropTable('Recipe')
         .dropTable('Category')
         .dropTable('Instruction')
-        .dropTable('Ingredient')
-        .dropTable('Custom_measurement')
-        .dropTable('Default_measurement')
-        .dropTable('Measurement');
+        .dropTable('Ingredient');
 }
 
