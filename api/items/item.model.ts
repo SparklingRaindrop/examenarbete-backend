@@ -6,7 +6,7 @@ export async function getItem(userId: Pick<User, 'id'>, itemId: Pick<Item, 'id'>
             .where('id', itemId)
             .where('user_id', null)
             .orWhere('user_id', userId)
-            .select('Item.*')
+            .select('id', 'name')
             .first();
     } catch (error) {
         console.error(error);
@@ -14,11 +14,12 @@ export async function getItem(userId: Pick<User, 'id'>, itemId: Pick<Item, 'id'>
     }
 }
 
+// TODO: delete
 export async function getItemByName(name: Pick<Item, 'name'>): Promise<Item | undefined> {
     try {
         return await knex<Item>('Item')
             .where('name', name)
-            .select('Item.*')
+            .select('id', 'name')
             .first();
     } catch (error) {
         console.error(error);
@@ -37,10 +38,12 @@ export async function addItem(newData: Item): Promise<Item | undefined> {
     return;
 }
 
-export async function editItem(id: Pick<Item, 'id'>, newName: Pick<Item, 'name'>): Promise<void> {
+export async function editItem(userId: Pick<Item, 'id'>, itemId: Pick<Item, 'id'>, newName: Pick<Item, 'name'>): Promise<void> {
     try {
         await knex('Item')
-            .where({ id })
+            .where('id', itemId)
+            .where('user_id', null)
+            .orWhere('user_id', userId)
             .update({
                 name: newName
             });
