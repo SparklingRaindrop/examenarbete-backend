@@ -18,3 +18,8 @@ interface Item {
     name: string;
     user_id?: Pick<User, 'id'>;
 }
+
+interface Unit {
+    id: string;
+    name: string;
+}
