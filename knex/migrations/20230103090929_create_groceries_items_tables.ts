@@ -37,7 +37,7 @@ export async function up(knex: Knex): Promise<void> {
         .createTable('Custom_measurement', function (table) {
             table.string('user_id').notNullable();
             table.string('item_id').notNullable();
-            table.string('measurement_id').notNullable();
+            table.string('measurement_id');
             table.foreign('item_id').references('Item.id');
             table.foreign('measurement_id').references('Measurement.id');
             table.foreign('user_id').references('User.id');
