@@ -1,8 +1,8 @@
 import express from 'express';
-import { getItems } from './item.model';
+import { getAll } from './item.controller';
 
 const route = express.Router();
 
-route.get('/', getItems);
+route.get('/', getAll);
 
 export { route as itemsRoute };
