@@ -3,7 +3,7 @@ import Status from '../../types/api';
 import Error from '../../types/error';
 import { v4 as uuid } from 'uuid';
 import { getRecipe } from '../recipes/recipes.model';
-import { addPlan, getPlan, getPlans, NewPlanData, removePlan } from './plans.model';
+import { addPlan, editPlan, getPlan, getPlans, NewPlanData, removePlan } from './plans.model';
 import { MEALS, MealType } from '../../types/unions';
 
 function removeTime(range: { from: Date, to: Date }) {
@@ -123,7 +123,7 @@ export async function remove(req: Request, res: Response): Promise<void> {
 
 export async function add(req: Request, res: Response): Promise<void> {
     const { id } = req.user;
-    const { date, type, recipe_id, updated_at } = req.body;
+    const { date, type, recipe_id } = req.body;
 
     if (typeof date === 'undefined' || typeof recipe_id === 'undefined' || typeof type === 'undefined') {
         res.status(Status.BadRequest).send({
@@ -132,32 +132,64 @@ export async function add(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    if (!isValidDate(date) || (updated_at && !isValidDate(updated_at)) || !isMealType(type)) {
+    if (!isValidDate(date) || !isMealType(type)) {
         res.status(Status.BadRequest).send({
             error: Error.InvalidDataType,
         });
         return;
     }
-
-    const targetRecipe = await getRecipe(id, recipe_id);
-    if (!targetRecipe) {
-        res.status(Status.BadRequest).send({
-            error: 'Invalid recipe_id.',
-        });
-        return;
-    }
-
-    const newData: NewPlanData = {
-        date,
-        type,
-        recipe_id,
-        updated_at: updated_at || new Date(),
-        id: uuid(),
-    };
-
     try {
+        const targetRecipe = await getRecipe(id, recipe_id);
+        if (!targetRecipe) {
+            res.status(Status.BadRequest).send({
+                error: 'Invalid recipe_id.',
+            });
+            return;
+        }
+
+        const newData: NewPlanData = {
+            date,
+            type,
+            recipe_id,
+            updated_at: new Date(),
+            id: uuid(),
+        };
+
+
         const addedData = await addPlan(id, newData);
         res.status(Status.Created).send(addedData);
+    } catch (error) {
+        console.error(error);
+        res.status(Status.ServerError).send({
+            error: Error.SomethingHappened,
+        });
+    }
+}
+
+export async function update(req: Request, res: Response): Promise<void> {
+    const { id } = req.user;
+    const { id: planId } = req.params;
+    const { date, type, recipe_id } = req.body;
+
+    try {
+        // Validating plan id & recipe id
+        const targetPlan = await getPlan(id, planId as unknown as Pick<Plan, 'id'>);
+        const targetRecipe = await getRecipe(id, recipe_id);
+        if (!targetPlan || !targetRecipe) {
+            res.status(Status.NotFound).send();
+            return;
+        }
+
+        // Validating incoming
+        if ((date && !isValidDate(date)) || (type && !isMealType(type))) {
+            res.status(Status.BadRequest).send({
+                error: Error.InvalidDataType,
+            });
+            return;
+        }
+
+        await editPlan(id, planId as unknown as Pick<Plan, 'id'>, { date, type, recipe_id, updated_at: new Date() });
+        res.status(Status.Succuss).send();
     } catch (error) {
         console.error(error);
         res.status(Status.ServerError).send({

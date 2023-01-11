@@ -42,3 +42,11 @@ export async function addPlan(userId: Pick<User, 'id'>, newData: NewPlanData): P
         })
         .then(() => newData);
 }
+
+export function editPlan(userId: Pick<User, 'id'>, planId: Pick<Plan, 'id'>, newData: Pick<Plan, 'date' | 'type' | 'updated_at'> & { recipe_id?: Pick<Recipe, 'id'> }): Promise<void> {
+    const { date, type, recipe_id } = newData;
+    return knex<PlanDbData>('Plan')
+        .where('id', planId)
+        .andWhere('user_id', userId)
+        .update({ date, type, recipe_id });
+}
