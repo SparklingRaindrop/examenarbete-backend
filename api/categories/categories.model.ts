@@ -1,11 +1,5 @@
 import knex from '../../knex/knex';
 
-export interface CategoryList {
-    name: Pick<Category, 'name'>,
-    id: Pick<Category, 'id'>,
-    recipe_id?: Pick<Recipe, 'id'>
-}
-
 export function getCategories(userId: Pick<User, 'id'>): Promise<CategoryList[] | undefined> {
     return knex<Category[]>('Category')
         .innerJoin(

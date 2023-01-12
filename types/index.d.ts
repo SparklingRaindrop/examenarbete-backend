@@ -7,7 +7,7 @@ interface User {
 
 interface Grocery {
     id: string;
-    item_id: Pick<Item, 'id'>;
+    item_id: Item['id'];
     updated_at: Date;
     amount: number;
     isChecked: boolean | number;
@@ -16,7 +16,7 @@ interface Grocery {
 interface Item {
     id: string;
     name: string;
-    user_id?: Pick<User, 'id'>;
+    user_id?: User['id'];
 }
 
 interface Unit {
@@ -27,7 +27,7 @@ interface Unit {
 interface Recipe {
     id: string;
     title: string;
-    user_id: Pick<User, 'id'>;
+    user_id: User['id'];
 }
 
 interface Category {
@@ -35,10 +35,16 @@ interface Category {
     name: string;
 }
 
+interface CategoryList {
+    name: Category['name'],
+    id: Category['id'],
+    recipe_id?: Recipe['name'];
+}
+
 interface Plan {
     id: string;
     updated_at: Date;
     date: Date;
     type: string;
-    recipe: Omit<Recipe, 'user_id'>;
+    recipe_id: Recipe['id'];
 }

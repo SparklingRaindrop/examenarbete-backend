@@ -1,6 +1,6 @@
 import knex from '../../knex/knex';
 
-export function getItems(userId: Pick<User, 'id'>): Promise<Item[] | undefined> {
+export function getItems(userId: User['id']): Promise<Item[]> {
     return knex<Item>('Item')
         .leftJoin(
             'Unit',
@@ -13,7 +13,7 @@ export function getItems(userId: Pick<User, 'id'>): Promise<Item[] | undefined> 
         .select('Item.id', 'Item.name', 'Unit.name as unit');
 }
 
-export function getItem(userId: Pick<User, 'id'>, itemId: Pick<Item, 'id'>): Promise<Item | undefined> {
+export function getItem(userId: User['id'], itemId: Item['id']): Promise<Item | undefined> {
     return knex<Item>('Item')
         .where('id', itemId)
         .where('user_id', null)
@@ -23,7 +23,7 @@ export function getItem(userId: Pick<User, 'id'>, itemId: Pick<Item, 'id'>): Pro
 }
 
 // TODO: delete
-export function getItemByName(name: Pick<Item, 'name'>): Promise<Item | undefined> {
+export function getItemByName(name: User['id']): Promise<Item | undefined> {
     return knex<Item>('Item')
         .where('name', name)
         .select('id', 'name')
@@ -36,7 +36,7 @@ export async function addItem(newData: Item): Promise<Item> {
         .then(() => newData);
 }
 
-export function editItem(userId: Pick<Item, 'id'>, itemId: Pick<Item, 'id'>, newName: Pick<Item, 'name'>): Promise<void> {
+export function editItem(userId: User['id'], itemId: Item['id'], newName: Item['name']): Promise<void> {
     return knex('Item')
         .where('id', itemId)
         .where('user_id', null)

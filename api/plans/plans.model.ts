@@ -6,36 +6,31 @@ const currentMonth = {
     to: new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 59),
 };
 
-type PlanDbData = Plan & { recipe_id?: Pick<Recipe, 'id'> };
 // range is set to current month by default
-export function getPlans(userId: Pick<User, 'id'>, range: { from: Date, to: Date } = currentMonth): Promise<PlanDbData[]> {
-    return knex<PlanDbData>('Plan')
+export function getPlans(userId: User['id'], range: { from: Date, to: Date } = currentMonth): Promise<Plan[]> {
+    return knex<Plan>('Plan')
         .where('user_id', userId)
         .whereBetween('date', [range.from, range.to])
         .select('id', 'updated_at', 'date', 'type', 'recipe_id');
 }
 
-export function getPlan(userId: Pick<User, 'id'>, planId: Pick<Plan, 'id'>): Promise<PlanDbData> {
-    return knex<PlanDbData>('Plan')
+export function getPlan(userId: User['id'], planId: Plan['id']): Promise<Plan> {
+    return knex<Plan>('Plan')
         .where('user_id', userId)
         .andWhere('id', planId)
         .first()
         .select('id', 'updated_at', 'date', 'type', 'recipe_id');
 }
 
-export function removePlan(userId: Pick<User, 'id'>, targetId: Pick<Plan, 'id'>): Promise<number> {
+export function removePlan(userId: User['id'], planId: Plan['id']): Promise<number> {
     return knex<Plan>('Plan')
-        .where('id', targetId)
+        .where('id', planId)
         .andWhere('user_id', userId)
         .del();
 }
 
-export interface NewPlanData extends Omit<Plan, 'recipe'> {
-    recipe_id: Pick<Recipe, 'id'>
-}
-
-export async function addPlan(userId: Pick<User, 'id'>, newData: NewPlanData): Promise<NewPlanData> {
-    return knex<NewPlanData & { user_id: Pick<User, 'id'> }>('Plan')
+export async function addPlan(userId: User['id'], newData: Plan): Promise<Plan> {
+    return knex<Plan & { user_id: string }>('Plan')
         .insert({
             ...newData,
             user_id: userId,
@@ -43,9 +38,9 @@ export async function addPlan(userId: Pick<User, 'id'>, newData: NewPlanData): P
         .then(() => newData);
 }
 
-export function editPlan(userId: Pick<User, 'id'>, planId: Pick<Plan, 'id'>, newData: Pick<Plan, 'date' | 'type' | 'updated_at'> & { recipe_id?: Pick<Recipe, 'id'> }): Promise<void> {
+export function editPlan(userId: User['id'], planId: Plan['id'], newData: Partial<Pick<Plan, 'date' | 'type' | 'updated_at'> & { recipe_id: Recipe['id'] }>): Promise<void> {
     const { date, type, recipe_id } = newData;
-    return knex<PlanDbData>('Plan')
+    return knex<Plan>('Plan')
         .where('id', planId)
         .andWhere('user_id', userId)
         .update({ date, type, recipe_id });

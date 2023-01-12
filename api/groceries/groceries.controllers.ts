@@ -4,7 +4,7 @@ import Status from '../../types/api';
 import Error from '../../types/error';
 
 import { addItem, editItem, getItem, getItemByName } from '../items/item.model';
-import { addGrocery, editGrocery, getGroceries, getGrocery, removeGrocery } from './groceries.model';
+import { addGrocery, editGrocery, getGroceries, getGrocery, newData, removeGrocery } from './groceries.model';
 
 export async function getAll(req: Request, res: Response): Promise<void> {
     const { id } = req.user;
@@ -28,7 +28,7 @@ export async function remove(req: Request, res: Response): Promise<void> {
     const { id: groceryId } = req.params;
 
     try {
-        const deletedCount = await removeGrocery(id, groceryId as unknown as Pick<Grocery, 'id'>);
+        const deletedCount = await removeGrocery(id, groceryId);
         if (!deletedCount) {
             res.status(Status.NotFound).send();
         }
@@ -54,7 +54,7 @@ export async function add(req: Request, res: Response): Promise<void> {
     try {
         // TODO: Item should be found by ID, NOT NAME
         // FROM HERE
-        const targetItem = await getItemByName(item_name as unknown as Pick<Item, 'name'>);
+        const targetItem = await getItemByName(item_name);
         let item_id = '';
         if (!targetItem) {
             const newItem = {
@@ -77,7 +77,7 @@ export async function add(req: Request, res: Response): Promise<void> {
 
         const newData = {
             id: uuid(),
-            item_id: item_id as unknown as Pick<Item, 'id'>,
+            item_id,
             amount: amount || 0,
             updated_at: updated_at || new Date(),
             isChecked: isChecked || false,
@@ -94,20 +94,13 @@ export async function add(req: Request, res: Response): Promise<void> {
     }
 }
 
-interface Data {
-    amount?: number;
-    isChecked?: boolean;
-    item_id: Pick<Item, 'id'>;
-    item_name: Pick<Item, 'name'>
-}
-
 export async function update(req: Request, res: Response): Promise<void> {
     const { id } = req.user;
     const { id: groceryId } = req.params;
-    const { amount, isChecked, item_name }: Data = req.body;
+    const { amount, isChecked, item_name } = req.body;
 
     try {
-        const existingData = await getGrocery(id, groceryId as unknown as Pick<Grocery, 'id'>);
+        const existingData = await getGrocery(id, groceryId);
         if (!existingData) {
             res.status(Status.NotFound).send({
                 error: 'The requested item doesn\'t exist.'
@@ -127,15 +120,15 @@ export async function update(req: Request, res: Response): Promise<void> {
             await editItem(id, existingData.item_id, item_name);
         }
 
-        const newData = {
-            item_id: existingData.item_id as unknown as Pick<Item, 'id'>,
+        const newData: newData = {
+            item_id: existingData.item_id,
             updated_at: new Date(),
             amount,
             isChecked,
         };
 
         if (amount || isChecked) {
-            await editGrocery(groceryId as unknown as Pick<Grocery, 'id'>, newData)
+            await editGrocery(groceryId, newData)
                 .then(() => res.status(Status.Succuss).send())
                 .catch(() => res.status(Status.BadRequest).send());
         }

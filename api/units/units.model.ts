@@ -1,6 +1,6 @@
 import knex from '../../knex/knex';
 
-export async function getUnit(userId: Pick<User, 'id'>, unitId: Pick<Item, 'id'>): Promise<Item | undefined> {
+export async function getUnit(userId: User['id'], unitId: Unit['id']): Promise<Item | undefined> {
     try {
         return knex<Item>('Item')
             .where('id', unitId)
