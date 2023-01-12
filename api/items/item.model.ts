@@ -34,9 +34,9 @@ export function getItem(userId: User['id'], itemId: Item['id']): Promise<Item | 
         .first();
 }
 
-export async function addItem(newData: Omit<Item, 'user_id'>): Promise<Omit<Item, 'user_id'>> {
+export async function addItem(user_id: User['id'], newData: Item): Promise<Omit<Item, 'user_id'>> {
     return knex<Item>('Item')
-        .insert(newData)
+        .insert({ ...newData, user_id })
         .then(() => newData);
 }
 
@@ -51,9 +51,20 @@ export function editItem(userId: User['id'], itemId: Item['id'], newData: Partia
         .update(newData);
 }
 
-export async function isDuplicatedName(userId: User['id'], name: string): Promise<boolean> {
+export async function isDuplicatedName(userId: User['id'], name: Item['name']): Promise<boolean> {
     return knex<Item>('Item')
         .where('name', name)
+        .andWhere(builder =>
+            builder
+                .where('Item.user_id', userId)
+                .orWhere('Item.user_id', null)
+        )
+        .then((result) => result.length !== 0);
+}
+
+export async function hasItemWithUnitId(userId: User['id'], unitId: Unit['id']): Promise<boolean> {
+    return knex<Item>('Item')
+        .where('unit_id', unitId)
         .andWhere(builder =>
             builder
                 .where('Item.user_id', userId)

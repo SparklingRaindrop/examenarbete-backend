@@ -69,10 +69,9 @@ export async function add(req: Request, res: Response): Promise<void> {
             id: uuid(),
             name: newItemName,
             unit_id,
-            user_id: id,
         };
 
-        const addedItem = await addItem(newItem);
+        const addedItem = await addItem(id, newItem);
         res.status(Status.Created).send(addedItem);
     } catch (error) {
         console.error(error);
