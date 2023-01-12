@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Status from '../../types/api';
-import { CategoryList, getCategories } from '../categories/categories.model';
+import { getCategories } from '../categories/categories.model';
 import { getRecipes } from './recipes.model';
 
 export async function getAll(req: Request, res: Response): Promise<void> {

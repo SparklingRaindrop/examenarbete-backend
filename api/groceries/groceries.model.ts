@@ -3,7 +3,7 @@ import knex from '../../knex/knex';
 const columns = ['Grocery.id', 'item_id', 'updated_at', 'amount', 'isChecked'];
 
 export function getGroceries(userId: User['id']): Promise<Grocery[]> {
-    return knex<Grocery[]>('Grocery')
+    return knex<Grocery>('Grocery')
         .select([...columns, 'Item.id as item_id', 'Item.name as item_name'])
         .innerJoin(
             'Item',

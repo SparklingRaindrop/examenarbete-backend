@@ -1,6 +1,6 @@
 import knex from '../../knex/knex';
 
-export function getCategories(userId: Pick<User, 'id'>): Promise<CategoryList[] | undefined> {
+export function getCategories(userId: User['id']): Promise<CategoryList[] | undefined> {
     return knex<Category[]>('Category')
         .innerJoin(
             'Category_list',
