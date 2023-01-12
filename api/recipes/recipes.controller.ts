@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Status from '../../types/api';
 import { getCategories } from '../categories/categories.model';
+import { getIngredients } from '../ingredients/ingredients.model';
 import { getRecipes } from './recipes.model';
 
 export async function getAll(req: Request, res: Response): Promise<void> {
@@ -14,22 +15,32 @@ export async function getAll(req: Request, res: Response): Promise<void> {
             return;
         }
 
-
-        let result = recipes as Array<Recipe & { category?: Omit<CategoryList, 'recipe_id'>[] }>;
+        let result = recipes as Array<Recipe & {
+            category?: Omit<CategoryList, 'recipe_id'>[],
+            ingredients?: Ingredient[];
+        }>;
 
         // Adding category
         const categoryList = await getCategories(id);
         if (categoryList) {
             result = result.map(recipe => {
-                const { id } = recipe;
+                const { id: recipeId } = recipe;
                 const category = categoryList.filter(category =>
-                    category.recipe_id === id as unknown as Pick<Recipe, 'id'>
+                    category.recipe_id === recipeId
                 );
                 category.forEach(c => delete c.recipe_id);
                 recipe.category = category;
+
                 return recipe;
             });
         }
+
+        // Adding ingredients
+        result = await Promise.all(result.map(async (recipe) => {
+            const ingredients = await getIngredients(id, recipe.id);
+            recipe.ingredients = ingredients;
+            return recipe;
+        }));
 
         res.send(result);
     } catch (error) {
