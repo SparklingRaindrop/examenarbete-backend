@@ -34,7 +34,7 @@ export function getItem(userId: User['id'], itemId: Item['id']): Promise<Item | 
         .first();
 }
 
-export async function addItem(user_id: User['id'], newData: Item): Promise<Omit<Item, 'user_id'>> {
+export async function addItem(user_id: User['id'], newData: Omit<Item, 'user_id'>): Promise<Omit<Item, 'user_id'>> {
     return knex<Item>('Item')
         .insert({ ...newData, user_id })
         .then(() => newData);

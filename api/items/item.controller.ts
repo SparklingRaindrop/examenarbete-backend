@@ -73,6 +73,7 @@ export async function add(req: Request, res: Response): Promise<void> {
 
         const addedItem = await addItem(id, newItem);
         res.status(Status.Created).send(addedItem);
+
     } catch (error) {
         console.error(error);
         res.status(Status.ServerError).send({
@@ -108,6 +109,7 @@ export async function update(req: Request, res: Response): Promise<void> {
 
         await editItem(id, itemId, newItem);
         res.status(Status.Succuss).send();
+
     } catch (error) {
         console.error(error);
         res.status(Status.ServerError).send({
