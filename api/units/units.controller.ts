@@ -11,7 +11,8 @@ export async function getAll(req: Request, res: Response): Promise<void> {
     try {
         const result = await getUnits(id);
         res.json(result);
-    } catch (err) {
+    } catch (error) {
+        console.error(error);
         res.status(Status.ServerError).send({
             error: Error.SomethingHappened,
         });
@@ -38,7 +39,8 @@ export async function remove(req: Request, res: Response): Promise<void> {
         }
 
         res.status(Status.NoContent).send();
-    } catch (err) {
+    } catch (error) {
+        console.error(error);
         res.status(Status.ServerError).send({
             error: Error.SomethingHappened,
         });
