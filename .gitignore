@@ -1,4 +1,5 @@
 node_modules
-seeds
+knex/seeds
 db
 .env
+knex/sample.ts
