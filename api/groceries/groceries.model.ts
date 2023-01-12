@@ -33,7 +33,7 @@ export function getGrocery(userId: User['id'], groceryId: Grocery['id']): Promis
 }
 
 export function removeGrocery(userId: User['id'], groceryId: Grocery['id']): Promise<number> {
-    return knex<Grocery[]>('Grocery')
+    return knex<Grocery>('Grocery')
         .where('id', groceryId)
         .andWhere('user_id', userId)
         .del();
