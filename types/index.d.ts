@@ -23,6 +23,7 @@ interface Item {
 interface Unit {
     id: string;
     name: string;
+    user_id: User['id'];
 }
 
 interface Recipe {

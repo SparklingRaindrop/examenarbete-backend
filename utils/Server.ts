@@ -10,6 +10,7 @@ import { authRoute } from '../api/auth/auth.routes';
 import { itemsRoute } from '../api/items/item.routes';
 import { recipesRoute } from '../api/recipes/recipes.routes';
 import { plansRoute } from '../api/plans/plans.routes';
+import { unitsRoute } from '../api/units/units.routes';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ export class Server {
         this.app.use('/items', checkToken, itemsRoute);
         this.app.use('/recipes', checkToken, recipesRoute);
         this.app.use('/plans', checkToken, plansRoute);
+        this.app.use('/units', checkToken, unitsRoute);
         this.app.use('/auth', authRoute);
 
         this.app.listen(this.port, (err?: Error) => {
