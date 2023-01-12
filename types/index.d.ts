@@ -30,7 +30,7 @@ interface Unit {
 interface Recipe {
     id: string;
     title: string;
-    user_id: User['id'];
+    user_id?: User['id'];
 }
 interface Category {
     id: string;
