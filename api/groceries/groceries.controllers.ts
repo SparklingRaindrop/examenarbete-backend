@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import Error from '../../types/error';
 
-import { addItem, editItem, getItem, getItemByName } from '../items/item.model';
+import { editItem, getItem } from '../items/item.model';
 import { addGrocery, editGrocery, getGroceries, getGrocery, newData, removeGrocery } from './groceries.model';
 
 export async function getAll(req: Request, res: Response): Promise<void> {
@@ -43,8 +43,8 @@ export async function remove(req: Request, res: Response): Promise<void> {
 // TODO: this has to be updated later. Item should be added by ID
 export async function add(req: Request, res: Response): Promise<void> {
     const { id } = req.user;
-    const { item_name, amount, isChecked, updated_at } = req.body;
-    if (typeof amount === 'undefined' || typeof item_name === 'undefined') {
+    const { item_id, amount, isChecked, updated_at } = req.body;
+    if (typeof amount === 'undefined' || typeof item_id === 'undefined') {
         res.status(Status.BadRequest).send({
             error: Error.MissingData,
         });
@@ -52,28 +52,13 @@ export async function add(req: Request, res: Response): Promise<void> {
     }
 
     try {
-        // TODO: Item should be found by ID, NOT NAME
-        // FROM HERE
-        const targetItem = await getItemByName(item_name);
-        let item_id = '';
+        const targetItem = await getItem(id, item_id);
         if (!targetItem) {
-            const newItem = {
-                id: uuid(),
-                name: item_name,
-                user_id: id,
-            };
-            const addedItem = await addItem(newItem);
-            if (addedItem) {
-                item_id = addedItem.id;
-            } else {
-                res.status(Status.BadRequest).send({
-                    error: Error.SomethingHappened,
-                });
-            }
-        } else {
-            item_id = targetItem.id;
+            res.status(Status.NotFound).send({
+                error: 'Couldn\'t find the item with the provided item_id',
+            });
+            return;
         }
-        // UNTIL HERE
 
         const newData = {
             id: uuid(),
