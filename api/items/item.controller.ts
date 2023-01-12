@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import Error from '../../types/error';
 import { isAvailableUnit } from '../units/units.model';
-import { addItem, editItem, getItem, getItems, isDuplicatedName } from './item.model';
+import { addItem, updateItem, getItem, getItems, isDuplicatedName } from './item.model';
 
 export async function getAll(req: Request, res: Response): Promise<void> {
     const { id } = req.user;
@@ -107,7 +107,7 @@ export async function update(req: Request, res: Response): Promise<void> {
             unit_id,
         };
 
-        await editItem(id, itemId, newItem);
+        await updateItem(id, itemId, newItem);
         res.status(Status.Succuss).send();
 
     } catch (error) {

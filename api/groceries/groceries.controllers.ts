@@ -3,8 +3,8 @@ import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import Error from '../../types/error';
 
-import { editItem, getItem } from '../items/item.model';
-import { addGrocery, editGrocery, getGroceries, getGrocery, newData, removeGrocery } from './groceries.model';
+import { updateItem, getItem } from '../items/item.model';
+import { addGrocery, updateGrocery, getGroceries, getGrocery, newData, removeGrocery } from './groceries.model';
 
 export async function getAll(req: Request, res: Response): Promise<void> {
     const { id } = req.user;
@@ -103,7 +103,7 @@ export async function update(req: Request, res: Response): Promise<void> {
         }
 
         if (item_name) {
-            await editItem(id, existingData.item_id, item_name);
+            await updateItem(id, existingData.item_id, item_name);
         }
 
         const newData: newData = {
@@ -114,7 +114,7 @@ export async function update(req: Request, res: Response): Promise<void> {
         };
 
         if (amount || isChecked) {
-            await editGrocery(groceryId, newData)
+            await updateGrocery(groceryId, newData)
                 .then(() => res.status(Status.Succuss).send())
                 .catch(() => res.status(Status.BadRequest).send());
         }

@@ -50,7 +50,7 @@ export interface newData extends Omit<Grocery, 'amount' | 'isChecked' | 'id' | '
     isChecked?: boolean,
 }
 
-export function editGrocery(groceryId: Grocery['id'], newData: newData): Promise<void> {
+export function updateGrocery(groceryId: Grocery['id'], newData: newData): Promise<void> {
     const { isChecked, amount, updated_at } = newData;
     return knex<Grocery>('Grocery')
         .where('id', groceryId)

@@ -3,7 +3,7 @@ import Status from '../../types/api';
 import Error from '../../types/error';
 import { v4 as uuid } from 'uuid';
 import { getRecipe } from '../recipes/recipes.model';
-import { addPlan, editPlan, getPlan, getPlans, removePlan } from './plans.model';
+import { addPlan, updatePlan, getPlan, getPlans, removePlan } from './plans.model';
 import { MEALS, MealType } from '../../types/unions';
 
 function removeTime(range: { from: Date, to: Date }) {
@@ -179,7 +179,7 @@ export async function update(req: Request, res: Response): Promise<void> {
             return;
         }
 
-        await editPlan(id, planId, { date, type, recipe_id, updated_at: new Date() });
+        await updatePlan(id, planId, { date, type, recipe_id, updated_at: new Date() });
         res.status(Status.Succuss).send();
     } catch (error) {
         console.error(error);

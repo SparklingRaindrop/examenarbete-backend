@@ -38,7 +38,7 @@ export async function addPlan(userId: User['id'], newData: Plan): Promise<Plan> 
         .then(() => newData);
 }
 
-export function editPlan(userId: User['id'], planId: Plan['id'], newData: Partial<Pick<Plan, 'date' | 'type' | 'updated_at'> & { recipe_id: Recipe['id'] }>): Promise<void> {
+export function updatePlan(userId: User['id'], planId: Plan['id'], newData: Partial<Pick<Plan, 'date' | 'type' | 'updated_at'> & { recipe_id: Recipe['id'] }>): Promise<void> {
     const { date, type, recipe_id } = newData;
     return knex<Plan>('Plan')
         .where('id', planId)

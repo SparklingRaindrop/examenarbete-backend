@@ -40,7 +40,7 @@ export async function addItem(user_id: User['id'], newData: Omit<Item, 'user_id'
         .then(() => newData);
 }
 
-export function editItem(userId: User['id'], itemId: Item['id'], newData: Partial<Pick<Item, 'name' | 'unit_id'>>): Promise<void> {
+export function updateItem(userId: User['id'], itemId: Item['id'], newData: Partial<Pick<Item, 'name' | 'unit_id'>>): Promise<void> {
     return knex<Item>('Item')
         .where('id', itemId)
         .andWhere(builder =>
