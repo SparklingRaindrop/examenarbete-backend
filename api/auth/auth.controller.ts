@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 import Status from '../../types/api';
-import { addUser, getUser, isAvailableEmail, removeUser } from './auth.model';
+import { addUser, getUser, isAvailableEmail, removeUser, updateUser } from './auth.model';
 import { default as ErrorMsg } from '../../types/error';
 
 dotenv.config();
@@ -151,6 +151,49 @@ export async function remove(req: Request, res: Response): Promise<void> {
         }
 
         res.status(Status.NoContent).send();
+
+    } catch (error) {
+        console.error(error);
+        res.status(Status.ServerError).send({
+            error: ErrorMsg.SomethingHappened,
+        });
+    }
+}
+
+export async function update(req: Request, res: Response): Promise<void> {
+    const { id } = req.user;
+    const { username, email, password } = req.body;
+
+    try {
+        if (email && !await isAvailableEmail(email)) {
+            res.status(Status.BadRequest).json({
+                error: 'Email is invalid or already in use.',
+            });
+            return;
+        }
+
+        if (username && !isValidUsername(username)) {
+            res.status(Status.BadRequest).json({
+                error: 'Username is invalid or already in use.',
+            });
+            return;
+        }
+
+        if (password && !isValidPassword(password)) {
+            res.status(Status.BadRequest).json({
+                error: 'Password is invalid.',
+            });
+            return;
+        }
+
+        const newData = {
+            email,
+            username,
+            password: Md5.hashStr(password),
+        };
+
+        updateUser(id, newData);
+        res.status(Status.Succuss).send();
 
     } catch (error) {
         console.error(error);

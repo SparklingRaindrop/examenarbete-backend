@@ -28,6 +28,12 @@ export function removeUser(userId: User['id']): Promise<number> {
         .del();
 }
 
+export function updateUser(userId: User['id'], newData: Partial<Omit<User, 'id'>>): Promise<void> {
+    return knex<User>('User')
+        .where('id', userId)
+        .update(newData);
+}
+
 export async function isAvailableEmail(email: User['email']): Promise<boolean> {
     return knex<User>('User')
         .select()
