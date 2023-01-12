@@ -28,13 +28,13 @@ export async function up(knex: Knex): Promise<void> {
         })
         .createTable('Unit', function (table) {
             table.string('id').notNullable().primary();
-            table.string('name').unique();
+            table.string('name');
+            table.string('user_id');
         })
         .createTable('Recipe', function (table) {
             table.string('id').notNullable().primary();
             table.string('title').notNullable();
             table.string('user_id');
-
             table.foreign('user_id').references('User.id');
         })
         .createTable('Category', function (table) {
@@ -59,17 +59,20 @@ export async function up(knex: Knex): Promise<void> {
             table.foreign('recipe_id').references('Recipe.id');
             table.foreign('user_id').references('User.id');
         })
+        .createTable('Ingredient', function (table) {
+            table.string('id').notNullable().primary();
+            table.float('amount');
+            table.string('item_id');
+            table.string('recipe_id');
+            table.foreign('item_id').references('Item.id');
+            table.foreign('recipe_id').references('Recipe.id');
+        })
         .createTable('Stock', function (table) {
             table.string('id').notNullable().primary();
             table.string('user_id');
             table.foreign('user_id').references('User.id');
         })
         .createTable('Instruction', function (table) {
-            table.string('id').notNullable().primary();
-            table.string('user_id');
-            table.foreign('user_id').references('User.id');
-        })
-        .createTable('Ingredient', function (table) {
             table.string('id').notNullable().primary();
             table.string('user_id');
             table.foreign('user_id').references('User.id');
