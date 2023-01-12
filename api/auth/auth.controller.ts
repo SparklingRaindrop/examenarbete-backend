@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 import Status from '../../types/api';
-import { addUser, getUser, isAvailableEmail } from './auth.model';
+import { addUser, getUser, isAvailableEmail, removeUser } from './auth.model';
 import { default as ErrorMsg } from '../../types/error';
 
 dotenv.config();
@@ -139,3 +139,23 @@ export async function createNewUser(req: Request, res: Response): Promise<void> 
     }
 }
 
+// TODO: How do I destroy JWT on delete?
+export async function remove(req: Request, res: Response): Promise<void> {
+    const { id } = req.user;
+
+    try {
+        const deletedCount = await removeUser(id);
+        if (!deletedCount) {
+            res.status(Status.NotFound).send();
+            return;
+        }
+
+        res.status(Status.NoContent).send();
+
+    } catch (error) {
+        console.error(error);
+        res.status(Status.ServerError).send({
+            error: ErrorMsg.SomethingHappened,
+        });
+    }
+}

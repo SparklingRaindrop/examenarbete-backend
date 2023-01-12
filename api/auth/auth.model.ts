@@ -22,6 +22,12 @@ export async function addUser(newData: User): Promise<Omit<User, 'id' | 'passwor
         });
 }
 
+export function removeUser(userId: User['id']): Promise<number> {
+    return knex<User>('User')
+        .where('id', userId)
+        .del();
+}
+
 export async function isAvailableEmail(email: User['email']): Promise<boolean> {
     return knex<User>('User')
         .select()
