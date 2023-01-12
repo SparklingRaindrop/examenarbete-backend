@@ -11,6 +11,7 @@ interface Grocery {
     updated_at: Date;
     amount: number;
     isChecked: boolean | number;
+    user_id: User['id'];
 }
 
 interface Item {

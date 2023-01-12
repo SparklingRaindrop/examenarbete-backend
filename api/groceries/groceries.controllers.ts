@@ -44,7 +44,7 @@ export async function remove(req: Request, res: Response): Promise<void> {
 // TODO: this has to be updated later. Item should be added by ID
 export async function add(req: Request, res: Response): Promise<void> {
     const { id } = req.user;
-    const { item_id, amount, isChecked, updated_at } = req.body;
+    const { item_id, amount, isChecked } = req.body;
     if (typeof amount === 'undefined' || typeof item_id === 'undefined') {
         res.status(Status.BadRequest).send({
             error: Error.MissingData,
@@ -65,11 +65,11 @@ export async function add(req: Request, res: Response): Promise<void> {
             id: uuid(),
             item_id,
             amount: amount || 0,
-            updated_at: updated_at || new Date(),
+            updated_at: new Date(),
             isChecked: isChecked || false,
         };
 
-        await addGrocery(newData);
+        await addGrocery(id, newData);
         res.status(Status.Created).send();
 
     } catch (error) {

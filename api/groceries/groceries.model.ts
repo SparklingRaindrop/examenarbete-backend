@@ -39,12 +39,13 @@ export function removeGrocery(userId: User['id'], groceryId: Grocery['id']): Pro
         .del();
 }
 
-export function addGrocery(newData: Exclude<Grocery, 'id'>): Promise<void> {
+export async function addGrocery(user_id: User['id'], newData: Omit<Grocery, 'user_id'>): Promise<Omit<Grocery, 'user_id'>> {
     return knex<Grocery>('Grocery')
-        .insert(newData);
+        .insert({ ...newData, user_id })
+        .then(() => newData);
 }
 
-export interface newData extends Omit<Grocery, 'amount' | 'isChecked' | 'id'> {
+export interface newData extends Omit<Grocery, 'amount' | 'isChecked' | 'id' | 'user_id'> {
     amount?: number,
     isChecked?: boolean,
 }
