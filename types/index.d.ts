@@ -16,6 +16,7 @@ interface Grocery {
 interface Item {
     id: string;
     name: string;
+    unit_id: Unit['id'];
     user_id?: User['id'];
 }
 
@@ -29,7 +30,6 @@ interface Recipe {
     title: string;
     user_id: User['id'];
 }
-
 interface Category {
     id: string;
     name: string;
@@ -47,4 +47,11 @@ interface Plan {
     date: Date;
     type: string;
     recipe_id: Recipe['id'];
+}
+
+interface Ingredient {
+    item_id: Item['id'];
+    name: Item['name'];
+    unit: Unit['name'];
+    amount: number;
 }
