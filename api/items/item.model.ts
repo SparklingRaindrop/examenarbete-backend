@@ -34,28 +34,21 @@ export function getItem(userId: User['id'], itemId: Item['id']): Promise<Item | 
         .first();
 }
 
-// TODO: delete
-/* export function getItemByName(name: User['id']): Promise<Item | undefined> {
-    return knex<Item>('Item')
-        .where('name', name)
-        .select('id', 'name')
-        .first();
-} */
-
 export async function addItem(newData: Omit<Item, 'user_id'>): Promise<Omit<Item, 'user_id'>> {
     return knex<Item>('Item')
         .insert(newData)
         .then(() => newData);
 }
 
-export function editItem(userId: User['id'], itemId: Item['id'], newName: Item['name']): Promise<void> {
+export function editItem(userId: User['id'], itemId: Item['id'], newData: Partial<Pick<Item, 'name' | 'unit_id'>>): Promise<void> {
     return knex<Item>('Item')
         .where('id', itemId)
-        .where('user_id', null)
-        .orWhere('user_id', userId)
-        .update({
-            name: newName
-        });
+        .andWhere(builder =>
+            builder
+                .where('Item.user_id', userId)
+                .orWhere('Item.user_id', null)
+        )
+        .update(newData);
 }
 
 export async function isDuplicatedName(userId: User['id'], name: string): Promise<boolean> {
