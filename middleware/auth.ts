@@ -22,7 +22,7 @@ export function checkToken(req: Request, res: Response, next: NextFunction) {
 
             if (err || !decoded) {
                 res.status(Status.Unauthorized).send({
-                    error: 'Failed to authenticate user.'
+                    error: 'Failed to authenticate user. [code: s1]'
                 });
                 return;
             }
@@ -30,7 +30,7 @@ export function checkToken(req: Request, res: Response, next: NextFunction) {
             const userId = (<{ id: User['id'] }>decoded).id;
             if (await isDeactivatedToken(userId)) {
                 res.status(Status.Unauthorized).send({
-                    error: 'Failed to authenticate user.'
+                    error: 'Failed to authenticate user. [code: s2]'
                 });
                 return;
             } else {
