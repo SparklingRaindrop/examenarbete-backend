@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import Status from '../types/api';
-import { isRemovedToken } from '../utils/service.model';
+import { isDeactivatedToken } from '../utils/service.model';
 
 dotenv.config();
 
@@ -28,7 +28,7 @@ export function checkToken(req: Request, res: Response, next: NextFunction) {
             }
 
             const userId = (<{ id: User['id'] }>decoded).id;
-            if (await isRemovedToken(userId)) {
+            if (await isDeactivatedToken(userId)) {
                 res.status(Status.Unauthorized).send({
                     error: 'Failed to authenticate user.'
                 });
