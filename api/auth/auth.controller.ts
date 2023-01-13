@@ -151,7 +151,10 @@ export async function remove(req: Request, res: Response): Promise<void> {
             res.status(Status.NotFound).send();
             return;
         }
-
+        await deactivateToken({
+            user_id: id,
+            created_at: new Date()
+        });
         res.status(Status.NoContent).send();
 
     } catch (error) {
