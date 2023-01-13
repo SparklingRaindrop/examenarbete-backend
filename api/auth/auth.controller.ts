@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import Status from '../../types/api';
 import { addUser, getUser, isAvailableEmail, removeUser, updateUser } from './auth.model';
 import { default as ErrorMsg } from '../../types/error';
+import { activateUserId, deactivateToken } from '../../utils/service.model';
 
 dotenv.config();
 
@@ -61,6 +62,7 @@ export async function login(req: Request, res: Response): Promise<void> {
         }
 
         const userData: Pick<User, 'id'> = { id: user.id };
+        await activateUserId(user.id);
 
         const token = generateToken(userData);
         res.status(Status.Created).json({ token, expires: getExpiredAt() });
@@ -202,3 +204,20 @@ export async function update(req: Request, res: Response): Promise<void> {
         });
     }
 }
+
+export async function logout(req: Request, res: Response): Promise<void> {
+    const { id } = req.user;
+    try {
+        await deactivateToken({
+            user_id: id,
+            created_at: new Date()
+        });
+        res.status(Status.Succuss).send();
+
+    } catch (error) {
+        console.error(error);
+        res.status(Status.ServerError).send({
+            error: ErrorMsg.SomethingHappened,
+        });
+    }
+} 
