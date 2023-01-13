@@ -28,7 +28,7 @@ export function getGrocery(userId: User['id'], groceryId: Grocery['id']): Promis
             'item_id'
         )
         .where('Grocery.id', groceryId)
-        .where('Grocery.user_id', userId)
+        .andWhere('Grocery.user_id', userId)
         .first();
 }
 
