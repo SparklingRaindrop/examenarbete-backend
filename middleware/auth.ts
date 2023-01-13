@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import Status from '../types/api';
+import { isRemovedToken } from '../utils/service.model';
 
 dotenv.config();
 
@@ -17,13 +18,23 @@ export function checkToken(req: Request, res: Response, next: NextFunction) {
             throw new Error('Cannot find the key');
         }
 
-        jwt.verify(token as string, process.env.SECRET_KEY, (err, decoded) => {
+        jwt.verify(token as string, process.env.SECRET_KEY, async (err, decoded) => {
+
             if (err || !decoded) {
                 res.status(Status.Unauthorized).send({
                     error: 'Failed to authenticate user.'
                 });
+                return;
+            }
+
+            const userId = (<{ id: User['id'] }>decoded).id;
+            if (await isRemovedToken(userId)) {
+                res.status(Status.Unauthorized).send({
+                    error: 'Failed to authenticate user.'
+                });
+                return;
             } else {
-                req.user = { id: (<{ id: User['id'] }>decoded).id };
+                req.user = { id: userId };
                 next();
             }
         });
