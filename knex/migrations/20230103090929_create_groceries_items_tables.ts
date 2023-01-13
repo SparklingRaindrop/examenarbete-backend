@@ -14,7 +14,7 @@ export async function up(knex: Knex): Promise<void> {
             table.string('user_id');
             table.string('unit_id');
             table.foreign('unit_id').references('Unit.id');
-            table.foreign('user_id').references('User.id');
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Grocery', function (table) {
             table.string('id').notNullable().primary();
@@ -24,24 +24,25 @@ export async function up(knex: Knex): Promise<void> {
             table.string('item_id').notNullable();
             table.string('user_id').notNullable();
             table.foreign('item_id').references('Item.id');
-            table.foreign('user_id').references('User.id');
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Unit', function (table) {
             table.string('id').notNullable().primary();
             table.string('name');
             table.string('user_id');
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Recipe', function (table) {
             table.string('id').notNullable().primary();
             table.string('title').notNullable();
             table.string('user_id');
-            table.foreign('user_id').references('User.id');
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Category', function (table) {
             table.string('id').notNullable().primary();
             table.string('name').notNullable().unique();
             table.string('user_id');
-            table.foreign('user_id').references('User.id');
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Category_list', function (table) {
             table.string('category_id');
@@ -57,7 +58,7 @@ export async function up(knex: Knex): Promise<void> {
             table.string('recipe_id');
             table.string('user_id');
             table.foreign('recipe_id').references('Recipe.id');
-            table.foreign('user_id').references('User.id');
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Ingredient', function (table) {
             table.string('id').notNullable().primary();
@@ -70,18 +71,18 @@ export async function up(knex: Knex): Promise<void> {
         .createTable('Stock', function (table) {
             table.string('id').notNullable().primary();
             table.string('user_id');
-            table.foreign('user_id').references('User.id');
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Instruction', function (table) {
             table.string('id').notNullable().primary();
             table.string('user_id');
-            table.foreign('user_id').references('User.id');
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Service', function (table) {
             table.increments('id').primary();
             table.timestamp('created_at');
             table.string('user_id').notNullable();
-            table.foreign('user_id').references('User.id');
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         });
 }
 
