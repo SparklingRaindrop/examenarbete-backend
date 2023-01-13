@@ -2,16 +2,22 @@ import knex from '../../knex/knex';
 
 export function getRecipes(userId: User['id']): Promise<Omit<Recipe, 'user_id'>[]> {
     return knex<Recipe>('Recipe')
-        .where('user_id', null)
-        .orWhere('user_id', userId)
+        .andWhere(builder =>
+            builder
+                .where('Recipe.user_id', userId)
+                .orWhere('Recipe.user_id', null)
+        )
         .select('id', 'title');
 }
 
 export function getRecipe(userId: User['id'], recipe_id: Recipe['id']): Promise<Omit<Recipe, 'user_id'>> {
     return knex<Recipe>('Recipe')
-        .where('user_id', null)
-        .orWhere('user_id', userId)
-        .andWhere('id', recipe_id)
+        .where('id', recipe_id)
+        .andWhere(builder =>
+            builder
+                .where('Recipe.user_id', userId)
+                .orWhere('Recipe.user_id', null)
+        )
         .first()
         .select('id', 'title');
 }
