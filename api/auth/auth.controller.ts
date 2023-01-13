@@ -144,8 +144,39 @@ export async function createNewUser(req: Request, res: Response): Promise<void> 
 // TODO: How do I destroy JWT on delete?
 export async function remove(req: Request, res: Response): Promise<void> {
     const { id } = req.user;
+    const { username, email, password } = req.body;
+
+    if (!email && !username) {
+        res.status(Status.BadRequest).send({
+            error: 'Provide either username or email.'
+        });
+        return;
+    } else if (!password) {
+        res.status(Status.BadRequest).send({
+            error: 'Password is required.'
+        });
+        return;
+    }
 
     try {
+        const user = await getUser({
+            ...(username ? { username } : { email })
+        });
+        if (!user) {
+            res.status(Status.BadRequest).send({
+                error: 'The provided information is incorrect.'
+            });
+            return;
+        }
+
+        const hashedPassword = Md5.hashStr(password);
+        if (user.password !== hashedPassword) {
+            res.status(Status.Forbidden).send({
+                error: 'Password is incorrect.'
+            });
+            return;
+        }
+
         const deletedCount = await removeUser(id);
         if (!deletedCount) {
             res.status(Status.NotFound).send();
