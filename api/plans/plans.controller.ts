@@ -32,7 +32,9 @@ function isMealType(mealType: string): mealType is MealType {
 }
 
 async function addRecipeDetails(res: Response, userId: User['id'], plan: Plan) {
-    const currentPlan = plan as Omit<Plan, 'recipe_id'> & { recipe_id?: string, recipe?: Omit<Recipe, 'user_id'> };
+    const currentPlan = plan as Omit<Plan, 'recipe_id'> & {
+        recipe_id?: string, recipe?: Omit<Recipe, 'user_id'>
+    };
     const { recipe_id } = plan;
     if (!recipe_id) {
         console.error('A plan should contain recipe_id.');
@@ -65,9 +67,8 @@ export async function getAll(req: Request, res: Response): Promise<void> {
 
         // Adding recipe data
         const result = await Promise.all([...plans].map(async (plan) => {
-            const currentPlan = plan as Omit<Plan, 'recipe_id'> & { recipe_id?: string, recipe?: Omit<Recipe, 'user_id'> };
-            addRecipeDetails(res, id, plan);
-            return currentPlan;
+            const planWithRecipeDetails = await addRecipeDetails(res, id, plan);
+            return planWithRecipeDetails;
         }));
 
         res.json(result);
@@ -85,8 +86,8 @@ export async function getOne(req: Request, res: Response): Promise<void> {
 
     try {
         const plan = await getPlan(id, planId);
-        addRecipeDetails(res, id, plan);
-        res.json(plan);
+        const planWithRecipeDetails = await addRecipeDetails(res, id, plan);
+        res.json(planWithRecipeDetails);
     } catch (error) {
         console.error(error);
         res.status(Status.ServerError).send({
