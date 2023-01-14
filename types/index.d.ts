@@ -57,3 +57,10 @@ interface Ingredient {
     unit: Unit['name'];
     amount: number;
 }
+
+interface Stock {
+    id: string;
+    item_id: Item['id'];
+    amount: number;
+    user_id: User['id'];
+}
