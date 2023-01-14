@@ -76,7 +76,7 @@ export async function up(knex: Knex): Promise<void> {
         .createTable('Stock', function (table) {
             table.string('id').notNullable().primary();
             table.string('item_id').notNullable().unique();
-            table.string('user_id');
+            table.string('user_id').notNullable();
             table.float('amount');
             table.foreign('user_id').references('User.id').onDelete('CASCADE');
             table.foreign('item_id').references('Item.id').onDelete('CASCADE');
