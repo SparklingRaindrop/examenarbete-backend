@@ -73,3 +73,13 @@ export async function hasItemWithUnitId(userId: User['id'], unitId: Unit['id']):
         .then((result) => result.length !== 0);
 }
 
+export async function isAvailable(userId: User['id'], itemId: Item['id']): Promise<boolean> {
+    return knex<Item>('Item')
+        .where('id', itemId)
+        .andWhere(builder =>
+            builder
+                .where('Item.user_id', userId)
+                .orWhere('Item.user_id', null)
+        )
+        .then((result) => result.length !== 0);
+}
