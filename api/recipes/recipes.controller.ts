@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Status from '../../types/api';
-import { getCategories } from '../categories/categories.model';
+//import { getCategories } from '../categories/categories.model';
 import { getIngredients } from '../ingredients/ingredients.model';
 import { getRecipe, getRecipes } from './recipes.model';
 
