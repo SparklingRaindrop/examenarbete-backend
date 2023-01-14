@@ -51,7 +51,7 @@ export function updateItem(userId: User['id'], itemId: Item['id'], newData: Part
         .update(newData);
 }
 
-export async function isDuplicatedName(userId: User['id'], name: Item['name']): Promise<boolean> {
+export async function isDuplicatedItemName(userId: User['id'], name: Item['name']): Promise<boolean> {
     return knex<Item>('Item')
         .where('name', name)
         .andWhere(builder =>
@@ -72,3 +72,4 @@ export async function hasItemWithUnitId(userId: User['id'], unitId: Unit['id']):
         )
         .then((result) => result.length !== 0);
 }
+
