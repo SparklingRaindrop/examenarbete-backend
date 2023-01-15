@@ -8,11 +8,7 @@ import { addGrocery, updateGrocery, getGroceries, getGrocery, newData, removeGro
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
-    const data = await getGroceries(id)
-        .catch((err) => {
-            next(err);
-            return;
-        });
+    const data = await getGroceries(id).catch((err) => next(err));
 
     const parsedData = data?.map(item => {
         item.isChecked = item.isChecked === 0 ? false : true;
@@ -26,11 +22,7 @@ export async function remove(req: Request, res: Response, next: NextFunction): P
     const { id } = req.user;
     const { id: groceryId } = req.params;
 
-    const deletedCount = await removeGrocery(id, groceryId)
-        .catch((err) => {
-            next(err);
-            return;
-        });
+    const deletedCount = await removeGrocery(id, groceryId).catch((err) => next(err));
 
     if (!deletedCount) {
         res.status(Status.NotFound).send();
@@ -51,11 +43,7 @@ export async function add(req: Request, res: Response, next: NextFunction): Prom
         return;
     }
 
-    const targetItem = await getItem(id, item_id)
-        .catch((err) => {
-            next(err);
-            return;
-        });
+    const targetItem = await getItem(id, item_id).catch((err) => next(err));
     if (!targetItem) {
         res.status(Status.NotFound).send({
             error: 'Couldn\'t find the item with the provided item_id',
@@ -71,11 +59,7 @@ export async function add(req: Request, res: Response, next: NextFunction): Prom
         isChecked: isChecked || false,
     };
 
-    const addedData = await addGrocery(id, newData)
-        .catch((err) => {
-            next(err);
-            return;
-        });
+    const addedData = await addGrocery(id, newData).catch((err) => next(err));
     res.status(Status.Created).send(addedData);
 }
 
@@ -90,21 +74,13 @@ export async function update(req: Request, res: Response, next: NextFunction): P
         return;
     }
 
-    const existingData = await getGrocery(id, groceryId)
-        .catch((err) => {
-            next(err);
-            return;
-        });
+    const existingData = await getGrocery(id, groceryId).catch((err) => next(err));
     if (!existingData) {
         res.status(Status.NotFound).send();
         return;
     }
 
-    const targetItem = await getItem(id, existingData.item_id)
-        .catch((err) => {
-            next(err);
-            return;
-        });
+    const targetItem = await getItem(id, existingData.item_id).catch((err) => next(err));
     if (item_name && !targetItem?.user_id) {
         res.status(Status.BadRequest).send({
             error: 'You cannot change default item names'
@@ -113,11 +89,7 @@ export async function update(req: Request, res: Response, next: NextFunction): P
     }
 
     if (item_name) {
-        await updateItem(id, existingData.item_id, item_name)
-            .catch((err) => {
-                next(err);
-                return;
-            });
+        await updateItem(id, existingData.item_id, item_name).catch((err) => next(err));
     }
 
     const newData: newData = {

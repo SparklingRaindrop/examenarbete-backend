@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { Md5 } from 'ts-md5';
 import { v4 as uuid } from 'uuid';
 import jwt from 'jsonwebtoken';
@@ -27,7 +27,7 @@ function getExpiredAt() {
     return time.setSeconds(time.getSeconds() + limit);
 }
 
-export async function login(req: Request, res: Response): Promise<void> {
+export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { username, email, password } = req.body;
 
     if (!email && !username) {
@@ -42,36 +42,37 @@ export async function login(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    try {
-        const user = await getUser({
-            ...(username ? { username } : { email })
-        });
-        if (!user) {
-            res.status(Status.BadRequest).send({
-                error: 'The provided information is incorrect.'
-            });
+
+    const user = await getUser({ ...(username ? { username } : { email }) })
+        .catch((err) => {
+            next(err);
             return;
-        }
-
-        const hashedPassword = Md5.hashStr(password);
-        if (user.password !== hashedPassword) {
-            res.status(Status.Forbidden).send({
-                error: 'Password is incorrect.'
-            });
-            return;
-        }
-
-        const userData: Pick<User, 'id'> = { id: user.id };
-        await activateUserId(user.id);
-
-        const token = generateToken(userData);
-        res.status(Status.Created).json({ token, expires: getExpiredAt() });
-    } catch (error) {
-        console.error(error);
-        res.status(Status.ServerError).send({
-            error: ErrorMsg.SomethingHappened,
         });
+    if (!user) {
+        res.status(Status.BadRequest).send({
+            error: 'The provided information is incorrect.'
+        });
+        return;
     }
+
+    const hashedPassword = Md5.hashStr(password);
+    if (user.password !== hashedPassword) {
+        res.status(Status.Forbidden).send({
+            error: 'Password is incorrect.'
+        });
+        return;
+    }
+
+    const userData: Pick<User, 'id'> = { id: user.id };
+    await activateUserId(user.id)
+        .catch((err) => {
+            next(err);
+            return;
+        });
+
+    const token = generateToken(userData);
+    res.status(Status.Created).json({ token, expires: getExpiredAt() });
+
 }
 
 function isValidEmail(email: string) {
@@ -99,50 +100,51 @@ function isValidUsername(username: string) {
     return usernameRegex.test(username);
 }
 
-export async function createNewUser(req: Request, res: Response): Promise<void> {
+export async function createNewUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { username, password, email } = req.body;
 
-    try {
-        if (!email || !isValidEmail(email) || !await isAvailableEmail(email)) {
-            res.status(Status.BadRequest).json({
-                error: 'Email is invalid or already in use.',
-            });
-            return;
-        }
-
-        if (!username || !isValidUsername(username)) {
-            res.status(Status.BadRequest).json({
-                error: 'Username is invalid or already in use.',
-            });
-            return;
-        }
-
-        if (!password || !isValidPassword(password)) {
-            res.status(Status.BadRequest).json({
-                error: 'Password is invalid.',
-            });
-            return;
-        }
-
-        const newUser = {
-            id: uuid(),
-            email,
-            username,
-            password: Md5.hashStr(password),
-        };
-
-        const result = await addUser(newUser);
-        res.status(201).send(result);
-    } catch (error) {
-        console.error(error);
-        res.status(Status.ServerError).send({
-            error: ErrorMsg.SomethingHappened,
+    if (!email || !isValidEmail(email)) {
+        res.status(Status.BadRequest).json({
+            error: 'Email is invalid.',
         });
+        return;
     }
+
+    const isUsableEmail = await isAvailableEmail(email).catch((err) => next(err));
+    if (!isUsableEmail) {
+        res.status(Status.BadRequest).json({
+            error: 'Email is already in use.',
+        });
+        return;
+    }
+
+    if (!username || !isValidUsername(username)) {
+        res.status(Status.BadRequest).json({
+            error: 'Username is invalid or already in use.',
+        });
+        return;
+    }
+
+    if (!password || !isValidPassword(password)) {
+        res.status(Status.BadRequest).json({
+            error: 'Password is invalid.',
+        });
+        return;
+    }
+
+    const newUser = {
+        id: uuid(),
+        email,
+        username,
+        password: Md5.hashStr(password),
+    };
+
+    const result = await addUser(newUser).catch((err) => next(err));
+    res.status(201).send(result);
 }
 
 // TODO: How do I destroy JWT on delete?
-export async function remove(req: Request, res: Response): Promise<void> {
+export async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
     const { username, email, password } = req.body;
 
@@ -158,100 +160,77 @@ export async function remove(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    try {
-        const user = await getUser({
-            ...(username ? { username } : { email })
+    const user = await getUser({ ...(username ? { username } : { email }) }).catch((err) => next(err));
+    if (!user) {
+        res.status(Status.BadRequest).send({
+            error: 'The provided information is incorrect.'
         });
-        if (!user) {
-            res.status(Status.BadRequest).send({
-                error: 'The provided information is incorrect.'
-            });
-            return;
-        }
-
-        const hashedPassword = Md5.hashStr(password);
-        if (user.password !== hashedPassword) {
-            res.status(Status.Forbidden).send({
-                error: 'Password is incorrect.'
-            });
-            return;
-        }
-
-        const deletedCount = await removeUser(id);
-        if (!deletedCount) {
-            res.status(Status.NotFound).send();
-            return;
-        }
-        await deactivateToken({
-            user_id: id,
-            created_at: new Date()
-        });
-        res.status(Status.NoContent).send();
-
-    } catch (error) {
-        console.error(error);
-        res.status(Status.ServerError).send({
-            error: ErrorMsg.SomethingHappened,
-        });
+        return;
     }
+
+    const hashedPassword = Md5.hashStr(password);
+    if (user.password !== hashedPassword) {
+        res.status(Status.Forbidden).send({
+            error: 'Password is incorrect.'
+        });
+        return;
+    }
+
+    const deletedCount = await removeUser(id).catch((err) => next(err));
+    if (!deletedCount) {
+        res.status(Status.NotFound).send();
+        return;
+    }
+
+    await deactivateToken({
+        user_id: id,
+        created_at: new Date()
+    }).catch((err) => next(err));
+
+    res.status(Status.NoContent).send();
 }
 
-export async function update(req: Request, res: Response): Promise<void> {
+export async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
     const { username, email, password } = req.body;
 
-    try {
-        if (email && !await isAvailableEmail(email)) {
-            res.status(Status.BadRequest).json({
-                error: 'Email is invalid or already in use.',
-            });
-            return;
-        }
-
-        if (username && !isValidUsername(username)) {
-            res.status(Status.BadRequest).json({
-                error: 'Username is invalid or already in use.',
-            });
-            return;
-        }
-
-        if (password && !isValidPassword(password)) {
-            res.status(Status.BadRequest).json({
-                error: 'Password is invalid.',
-            });
-            return;
-        }
-
-        const newData = {
-            email,
-            username,
-            password: Md5.hashStr(password),
-        };
-
-        updateUser(id, newData);
-        res.status(Status.Succuss).send();
-
-    } catch (error) {
-        console.error(error);
-        res.status(Status.ServerError).send({
-            error: ErrorMsg.SomethingHappened,
+    if (email && !await isAvailableEmail(email).catch((err) => next(err))) {
+        res.status(Status.BadRequest).json({
+            error: 'Email is invalid or already in use.',
         });
+        return;
     }
+
+    if (username && !isValidUsername(username)) {
+        res.status(Status.BadRequest).json({
+            error: 'Username is invalid or already in use.',
+        });
+        return;
+    }
+
+    if (password && !isValidPassword(password)) {
+        res.status(Status.BadRequest).json({
+            error: 'Password is invalid.',
+        });
+        return;
+    }
+
+    const newData = {
+        email,
+        username,
+        password: Md5.hashStr(password),
+    };
+
+    updateUser(id, newData);
+    res.status(Status.Succuss).send();
 }
 
-export async function logout(req: Request, res: Response): Promise<void> {
+export async function logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
-    try {
-        await deactivateToken({
-            user_id: id,
-            created_at: new Date()
-        });
-        res.status(Status.Succuss).send();
 
-    } catch (error) {
-        console.error(error);
-        res.status(Status.ServerError).send({
-            error: ErrorMsg.SomethingHappened,
-        });
-    }
+    await deactivateToken({
+        user_id: id,
+        created_at: new Date()
+    }).catch((err) => next(err));
+    res.status(Status.Succuss).send();
 } 
