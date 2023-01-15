@@ -2,16 +2,44 @@ import knex from '../../knex/knex';
 
 const columns = ['Grocery.id', 'item_id', 'updated_at', 'amount', 'isChecked'];
 
-export function getGroceries(userId: User['id']): Promise<Grocery[]> {
+export async function getGroceries(userId: User['id']): Promise<Grocery[]> {
     return knex<Grocery>('Grocery')
-        .select([...columns, 'Item.id as item_id', 'Item.name as item_name'])
-        .innerJoin(
+        .leftJoin(
             'Item',
             'item_id',
             '=',
             'Item.id'
         )
-        .where('Grocery.user_id', userId);
+        .leftJoin(
+            'Unit',
+            'unit_id',
+            '=',
+            'Unit.id'
+        )
+        .select([
+            ...columns,
+            'Item.id as item_id',
+            'Item.name as item_name',
+            'Unit.id as unit_id',
+            'Unit.name as unit_name'
+        ])
+        .where('Grocery.user_id', userId)
+        .then((result) => (
+            result.map(item => {
+                const newItem = { ...item };
+                for (const key in newItem) {
+                    if (!key.includes('_') || key === 'updated_at') continue;
+
+                    const [property, subProperty] = key.split('_');
+                    newItem[property] = {
+                        ...newItem[property],
+                        [subProperty]: newItem[key]
+                    };
+                    delete newItem[key];
+                }
+                return newItem;
+            })
+        ));
 }
 
 type GroceryResponse = {

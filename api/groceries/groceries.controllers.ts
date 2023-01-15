@@ -8,9 +8,14 @@ import { addGrocery, updateGrocery, getGroceries, getGrocery, newData, removeGro
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
-    const data = await getGroceries(id).catch((err) => next(err));
 
-    const parsedData = data?.map(item => {
+    const data = await getGroceries(id).catch((err) => next(err));
+    if (!data || data.length === 0) {
+        res.json([]);
+        return;
+    }
+
+    const parsedData = data.map(item => {
         item.isChecked = item.isChecked === 0 ? false : true;
         return item;
     });
