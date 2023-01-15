@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 
 import { checkToken } from '../middleware/auth';
+import { handleError } from '../middleware/errorHandler';
 
 import { groceriesRoute } from '../api/groceries';
 import { authRoute } from '../api/auth/auth.routes';
@@ -38,6 +39,9 @@ export class Server {
         this.app.use('/units', checkToken, unitsRoute);
         this.app.use('/stocks', checkToken, stocksRoute);
         this.app.use('/auth', authRoute);
+
+        // error handler
+        this.app.use(handleError);
 
         this.app.listen(this.port, (err?: Error) => {
             if (err) {
