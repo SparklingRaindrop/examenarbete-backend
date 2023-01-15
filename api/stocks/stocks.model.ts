@@ -40,7 +40,7 @@ export async function getStocks(userId: User['id']): Promise<StockResponse[]> {
                         ...newItem[property],
                         [subProperty]: newItem[key]
                     };
-                    delete newItem.key;
+                    delete newItem[key];
                 }
                 return newItem;
             });
