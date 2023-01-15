@@ -64,3 +64,7 @@ interface Stock {
     amount: number;
     user_id: User['id'];
 }
+
+interface KnexError extends Error {
+    code?: number;
+}
