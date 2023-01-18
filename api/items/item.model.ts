@@ -83,3 +83,11 @@ export async function isAvailableItem(userId: User['id'], itemId: Item['id']): P
         )
         .then((result) => result.length !== 0);
 }
+
+export async function isDefaultItem(itemId: Item['id']): Promise<boolean> {
+    return knex<Item>('Item')
+        .where('id', itemId)
+        .whereNull('user_id')
+        .select('*')
+        .then(result => result.length > 0);
+}

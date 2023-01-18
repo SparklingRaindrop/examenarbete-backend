@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import { default as ErrorMsg } from '../../types/error';
 
-import { updateItem, getItem } from '../items/item.model';
+import { updateItem, getItem, isDefaultItem } from '../items/item.model';
 import { addGrocery, updateGrocery, getGroceries, getGrocery, newData, removeGrocery } from './groceries.model';
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -72,9 +72,9 @@ export async function add(req: Request, res: Response, next: NextFunction): Prom
 export async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
     const { id: groceryId } = req.params;
-    const { amount, isChecked, item_name } = req.body;
+    const { amount, isChecked } = req.body;
 
-    if (!amount && !isChecked && !item_name) {
+    if (!amount && typeof isChecked === 'undefined') {
         res.status(Status.BadRequest).send(ErrorMsg.MissingData);
         return;
     }
@@ -85,17 +85,16 @@ export async function update(req: Request, res: Response, next: NextFunction): P
         return;
     }
 
-    const targetItem = await getItem(id, existingData.item_id).catch((err) => next(err));
-    if (item_name && !targetItem?.user_id) {
-        res.status(Status.BadRequest).send({
-            error: 'You cannot change default item names'
-        });
-        return;
-    }
+    /*     if (await isDefaultItem(existingData.item_id)) {
+            res.status(Status.BadRequest).send({
+                error: 'You cannot change default item names'
+            });
+            return;
+        } */
 
-    if (item_name) {
-        await updateItem(id, existingData.item_id, item_name).catch((err) => next(err));
-    }
+    /*     if (item_name) {
+            await updateItem(id, existingData.item_id, item_name).catch((err) => next(err));
+        } */
 
     const newData: newData = {
         item_id: existingData.item_id,
@@ -104,7 +103,7 @@ export async function update(req: Request, res: Response, next: NextFunction): P
         isChecked,
     };
 
-    if (amount || isChecked) {
+    if (amount || typeof isChecked !== 'undefined') {
         await updateGrocery(groceryId, newData)
             .then(() => res.status(Status.Succuss).send())
             .catch(() => res.status(Status.BadRequest).send());
