@@ -100,6 +100,7 @@ export async function remove(req: Request, res: Response, next: NextFunction): P
     const deletedCount = await removePlan(id, planId).catch((err) => next(err));
     if (!deletedCount) {
         res.status(Status.NotFound).send();
+        return;
     }
     res.status(Status.NoContent).send();
 }
@@ -131,7 +132,7 @@ export async function add(req: Request, res: Response, next: NextFunction): Prom
     }
 
     const newData: Plan = {
-        date,
+        date: new Date(date).getTime(),
         type,
         recipe_id,
         updated_at: new Date(),
