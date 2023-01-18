@@ -6,8 +6,9 @@ import { getRecipe, getRecipes } from './recipes.model';
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
+    const { keyword } = req.query;
 
-    const recipes = await getRecipes(id).catch((err) => next(err));
+    const recipes = await getRecipes(id, keyword as string).catch((err) => next(err));
     if (!recipes || recipes.length === 0) {
         // When nothing matches return an empty array
         res.send({ recipes: [] });

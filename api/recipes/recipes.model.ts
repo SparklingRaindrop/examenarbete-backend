@@ -1,12 +1,17 @@
 import knex from '../../knex/knex';
 
-export function getRecipes(userId: User['id']): Promise<Omit<Recipe, 'user_id'>[]> {
+export function getRecipes(userId: User['id'], keyword?: string): Promise<Omit<Recipe, 'user_id'>[]> {
     return knex<Recipe>('Recipe')
         .andWhere(builder =>
             builder
                 .where('Recipe.user_id', userId)
                 .orWhere('Recipe.user_id', null)
         )
+        .modify(function (queryBuilder) {
+            if (keyword) {
+                queryBuilder.where('title', 'like', `%${keyword}%`);
+            }
+        })
         .select('id', 'title');
 }
 
