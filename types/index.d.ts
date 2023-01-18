@@ -46,7 +46,7 @@ interface CategoryList {
 interface Plan {
     id: string;
     updated_at: Date;
-    date: Date;
+    date: number;
     type: string;
     recipe_id: Recipe['id'];
 }
