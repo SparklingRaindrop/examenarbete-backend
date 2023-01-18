@@ -11,7 +11,7 @@ export async function getAll(req: Request, res: Response, next: NextFunction): P
     const recipes = await getRecipes(id, keyword as string).catch((err) => next(err));
     if (!recipes || recipes.length === 0) {
         // When nothing matches return an empty array
-        res.send({ recipes: [] });
+        res.send([]);
         return;
     }
 
