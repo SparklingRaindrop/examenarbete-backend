@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import Status from '../../types/api';
 //import { getCategories } from '../categories/categories.model';
 import { getIngredients } from '../ingredients/ingredients.model';
-import { getRecipe, getRecipes } from './recipes.model';
+import { getRecipe, getRecipes, removeRecipe } from './recipes.model';
 
 type Data = Omit<Recipe, 'user_id'> & { ingredients: Ingredient[] };
 
@@ -78,4 +78,16 @@ export async function getOne(req: Request, res: Response, next: NextFunction): P
     result.ingredients = ingredients ? ingredients : [];
 
     res.send(result);
+}
+
+export async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.user;
+    const { id: recipeId } = req.params;
+
+    const deletedCount = await removeRecipe(id, recipeId).catch((err) => next(err));
+    if (!deletedCount) {
+        res.status(Status.NotFound).send();
+        return;
+    }
+    res.status(Status.NoContent).send();
 }

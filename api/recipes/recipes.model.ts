@@ -27,3 +27,9 @@ export function getRecipe(userId: User['id'], recipe_id: Recipe['id']): Promise<
         .select('id', 'title');
 }
 
+export function removeRecipe(userId: User['id'], recipeId: Recipe['id']): Promise<number> {
+    return knex<Recipe>('Recipe')
+        .where('id', recipeId)
+        .andWhere('user_id', userId)
+        .del();
+}
