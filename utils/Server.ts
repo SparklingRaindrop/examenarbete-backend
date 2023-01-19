@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 
 import { checkToken } from '../middleware/auth';
 import { handleKnexError } from '../middleware/errorHandler';
+import { logger } from '../middleware/logger';
 
 import { groceriesRoute } from '../api/groceries';
 import { authRoute } from '../api/auth/auth.routes';
@@ -30,6 +31,7 @@ export class Server {
         // middleware
         this.app.use(bodyParser.json());
         this.app.use(cors(corsOptions));
+        this.app.use(logger);
 
         // routes
         this.app.use('/groceries', checkToken, groceriesRoute);
