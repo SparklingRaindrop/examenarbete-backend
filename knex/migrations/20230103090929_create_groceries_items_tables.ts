@@ -70,7 +70,11 @@ export async function up(knex: Knex): Promise<void> {
         })
         .createTable('Instruction', function (table) {
             table.string('id').notNullable().primary();
+            table.integer('step_no');
+            table.string('instruction');
+            table.string('recipe_id');
             table.string('user_id');
+            table.foreign('recipe_id').references('Recipe.id').onDelete('CASCADE');
             table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Stock', function (table) {
