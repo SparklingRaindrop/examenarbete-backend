@@ -68,13 +68,13 @@ export async function getAll(req: Request, res: Response, next: NextFunction): P
         return;
     }
 
-    // Adding recipe data
-    const result = await Promise.all([...plans].map(async (plan) => {
-        const planWithRecipeDetails = await addRecipeDetails(res, id, plan);
-        return planWithRecipeDetails;
-    })).catch((err) => next(err));
+    /*     // Adding recipe data
+        const result = await Promise.all([...plans].map(async (plan) => {
+            const planWithRecipeDetails = await addRecipeDetails(res, id, plan);
+            return planWithRecipeDetails;
+        })).catch((err) => next(err)); */
 
-    res.json(result);
+    res.json(plans);
 }
 
 export async function getOne(req: Request, res: Response, next: NextFunction): Promise<void> {

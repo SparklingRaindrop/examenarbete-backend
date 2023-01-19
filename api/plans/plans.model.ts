@@ -7,14 +7,39 @@ const currentMonth = {
 };
 
 // range is set to current month by default
-export function getPlans(userId: User['id'], range: { from: Date | null, to: Date | null } = currentMonth): Promise<Plan[]> {
+export async function getPlans(userId: User['id'], range: { from: Date | null, to: Date | null } = currentMonth): Promise<Plan[]> {
     return knex<Plan>('Plan')
-        .where('user_id', userId)
+        .where('Plan.user_id', userId)
         .whereBetween('date', [
             range.from ? range.from.getTime() : currentMonth.from.getTime(),
             range.to ? range.to.getTime() : currentMonth.to.getTime()
         ])
-        .select('id', 'updated_at', 'date', 'type', 'recipe_id');
+        .leftJoin(
+            'Recipes',
+            'recipe_id',
+            '=',
+            'Recipe.id'
+        )
+        .select(
+            'Plan.id', 'updated_at', 'date', 'type',
+            'Recipe.recipe_id', 'title as recipe_title'
+        )
+        .then((result) => (
+            result.map(item => {
+                const newItem = { ...item };
+                for (const key in newItem) {
+                    if (!key.includes('_') || key === 'updated_at') continue;
+
+                    const [property, subProperty] = key.split('_');
+                    newItem[property] = {
+                        ...newItem[property],
+                        [subProperty]: newItem[key]
+                    };
+                    delete newItem[key];
+                }
+                return newItem;
+            })
+        ));
 }
 
 export function getPlan(userId: User['id'], planId: Plan['id']): Promise<Plan> {
