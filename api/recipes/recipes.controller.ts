@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import Status from '../../types/api';
 //import { getCategories } from '../categories/categories.model';
 import { getIngredients } from '../ingredients/ingredients.model';
+import { getInstructions } from '../instructions/instructions.model';
 import { getRecipe, getRecipes, removeRecipe } from './recipes.model';
 
 type Data = Omit<Recipe, 'user_id'> & { ingredients: Ingredient[] };
@@ -56,6 +57,7 @@ export async function getOne(req: Request, res: Response, next: NextFunction): P
     const result = recipe as Recipe & {
         category?: Omit<CategoryList, 'recipe_id'>[],
         ingredients?: Ingredient[];
+        instructions?: Omit<Instruction, 'user_id' | 'recipe_id'>[];
     };
 
     // Adding category
@@ -75,7 +77,9 @@ export async function getOne(req: Request, res: Response, next: NextFunction): P
 
     // Adding ingredients
     const ingredients = await getIngredients(id, recipe.id).catch((err) => next(err));
+    const instructions = await getInstructions(id, recipe.id).catch((err) => next(err));
     result.ingredients = ingredients ? ingredients : [];
+    result.instructions = instructions ? instructions : [];
 
     res.send(result);
 }
