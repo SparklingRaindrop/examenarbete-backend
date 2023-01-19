@@ -7,10 +7,13 @@ const currentMonth = {
 };
 
 // range is set to current month by default
-export function getPlans(userId: User['id'], range: { from: Date, to: Date } = currentMonth): Promise<Plan[]> {
+export function getPlans(userId: User['id'], range: { from: Date | null, to: Date | null } = currentMonth): Promise<Plan[]> {
     return knex<Plan>('Plan')
         .where('user_id', userId)
-        .whereBetween('date', [range.from, range.to])
+        .whereBetween('date', [
+            range.from ? range.from.getTime() : currentMonth.from.getTime(),
+            range.to ? range.to.getTime() : currentMonth.to.getTime()
+        ])
         .select('id', 'updated_at', 'date', 'type', 'recipe_id');
 }
 

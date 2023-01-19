@@ -6,25 +6,10 @@ import { getRecipe } from '../recipes/recipes.model';
 import { addPlan, updatePlan, getPlan, getPlans, removePlan } from './plans.model';
 import { MEALS, MealType } from '../../types/unions';
 
-function removeTime(range: { from: Date, to: Date }) {
-    const start = new Date(range.from);
-    const end = new Date(range.to);
-    return {
-        from: new Date(
-            start.getFullYear(),
-            start.getMonth(),
-            start.getDate()
-        ),
-        to: new Date(
-            end.getFullYear(),
-            end.getMonth(),
-            end.getDate()
-        )
-    };
-}
-
-function isValidDate(date: Date) {
-    return new Date(date).toString() !== 'Invalid Date';
+function isValidDate(date: string) {
+    const [day, month, year] = date.split('-');
+    // Month is literal
+    return new Date(Number(year), Number(month) - 1, Number(day)).toString() !== 'Invalid Date';
 }
 
 function isMealType(mealType: string): mealType is MealType {
@@ -52,18 +37,28 @@ async function addRecipeDetails(res: Response, userId: User['id'], plan: Plan) {
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
-    const { range } = req.body;
+    const { start, end } = req.query;
+    const range: { from: Date | null, to: Date | null } = {
+        from: null,
+        to: null
+    };
 
-    // Data validation
-    if (range && (!isValidDate(range.from) || !isValidDate(range.from))) {
-        res.status(Status.BadRequest).send({
-            error: Error.InvalidDataType,
-        });
-        return;
+    if (start && end) {
+        if (typeof start !== 'string' || typeof end !== 'string') {
+            res.status(Status.BadRequest).send();
+            return;
+        } else if (!isValidDate(start) || !isValidDate(end)) {
+            res.status(Status.BadRequest).send();
+            return;
+        }
+        const [startDay, startMonth, startYear] = start.split('-');
+        const [endDay, endMonth, endYear] = end.split('-');
+        // Month is literal
+        range.from = new Date(Number(startYear), Number(startMonth) - 1, Number(startDay), 0, 0, 0, 0);
+        range.to = new Date(Number(endYear), Number(endMonth) - 1, Number(endDay), 23, 59, 59, 59);
     }
 
-
-    const plans = await getPlans(id, range && removeTime(range)).catch((err) => next(err));
+    const plans = await getPlans(id, range).catch((err) => next(err));
     if (!plans || plans.length === 0) {
         res.json([]);
         return;
@@ -76,7 +71,6 @@ export async function getAll(req: Request, res: Response, next: NextFunction): P
     })).catch((err) => next(err));
 
     res.json(result);
-
 }
 
 export async function getOne(req: Request, res: Response, next: NextFunction): Promise<void> {
