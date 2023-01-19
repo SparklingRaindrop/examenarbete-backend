@@ -57,7 +57,7 @@ export async function up(knex: Knex): Promise<void> {
             table.string('type').notNullable();
             table.string('recipe_id');
             table.string('user_id');
-            table.foreign('recipe_id').references('Recipe.id');
+            table.foreign('recipe_id').references('Recipe.id').onDelete('CASCADE');
             table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Ingredient', function (table) {
@@ -65,8 +65,8 @@ export async function up(knex: Knex): Promise<void> {
             table.float('amount');
             table.string('item_id');
             table.string('recipe_id');
-            table.foreign('item_id').references('Item.id');
-            table.foreign('recipe_id').references('Recipe.id');
+            table.foreign('item_id').references('Item.id').onDelete('CASCADE');
+            table.foreign('recipe_id').references('Recipe.id').onDelete('CASCADE');
         })
         .createTable('Instruction', function (table) {
             table.string('id').notNullable().primary();
