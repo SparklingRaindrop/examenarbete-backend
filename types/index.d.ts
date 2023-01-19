@@ -24,7 +24,7 @@ interface Item {
 interface Instruction {
     id: string;
     recipe_id: Recipe['id'];
-    step_np: number;
+    step_no: number;
     instruction: string;
     user_id?: User['id'];
 }
