@@ -21,6 +21,14 @@ interface Item {
     user_id?: User['id'];
 }
 
+interface Instruction {
+    id: string;
+    recipe_id: Recipe['id'];
+    step_np: number;
+    instruction: string;
+    user_id?: User['id'];
+}
+
 interface Unit {
     id: string;
     name: string;
@@ -40,7 +48,7 @@ interface Category {
 interface CategoryList {
     name: Category['name'],
     id: Category['id'],
-    recipe_id?: Recipe['name'];
+    recipe_id?: Recipe['id'];
 }
 
 interface Plan {
