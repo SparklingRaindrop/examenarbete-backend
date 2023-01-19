@@ -7,9 +7,13 @@ import { addPlan, updatePlan, getPlan, getPlans, removePlan } from './plans.mode
 import { MEALS, MealType } from '../../types/unions';
 
 function isValidDate(date: string) {
-    const [day, month, year] = date.split('-');
-    // Month is literal
-    return new Date(Number(year), Number(month) - 1, Number(day)).toString() !== 'Invalid Date';
+    if (/^[0-9]{2}-[0-9]{2}-[0-9]{4}$/.test(date)) {
+        const [day, month, year] = date.split('-');
+        // Month is literal
+        return new Date(Number(year), Number(month) - 1, Number(day)).toString() !== 'Invalid Date';
+    } else {
+        return new Date(date).toString() !== 'Invalid Date';
+    }
 }
 
 function isMealType(mealType: string): mealType is MealType {
