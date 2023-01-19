@@ -15,7 +15,7 @@ export async function getIngredients(userId: User['id'], recipeId: Recipe['id'])
         )
         .select(
             'Ingredient.amount',
-            'Item.name as item_name', 'Item.id as item_id',
+            'Item.id as item_id', 'Item.name as item_name',
             'Unit.id as unit_id', 'Unit.name as unit_name'
         )
         .andWhere(builder =>
