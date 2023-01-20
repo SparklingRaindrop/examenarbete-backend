@@ -12,7 +12,7 @@ export async function getAll(req: Request, res: Response, next: NextFunction): P
     const stocks = await getStocks(id).catch((err) => next(err));
     if (!stocks || stocks.length === 0) {
         // When nothing matches return an empty array
-        res.send({ recipes: [] });
+        res.send([]);
         return;
     }
 

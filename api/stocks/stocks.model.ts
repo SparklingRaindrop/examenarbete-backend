@@ -24,27 +24,34 @@ export async function getStocks(userId: User['id']): Promise<StockResponse[]> {
         .select(
             'Stock.id',
             'Stock.amount',
-            'Unit.id as unit_id',
-            'Unit.name as unit_name',
             'Item.id as item_id',
             'Item.name as item_name',
+            'Unit.id as unit_id',
+            'Unit.name as unit_name',
         )
-        .then((result) => {
-            return result.map(item => {
+        .then((result) => (
+            result.map((item: any) => {
                 const newItem = { ...item };
                 for (const key in newItem) {
-                    if (!key.includes('_')) continue;
+                    if (!key.includes('_') || key === 'updated_at') continue;
 
                     const [property, subProperty] = key.split('_');
-                    newItem[property] = {
-                        ...newItem[property],
-                        [subProperty]: newItem[key]
-                    };
+                    if (property === 'unit') {
+                        newItem.item.unit = {
+                            ...newItem.item.unit,
+                            [subProperty]: newItem[key]
+                        };
+                    } else {
+                        newItem[property] = {
+                            ...newItem[property],
+                            [subProperty]: newItem[key]
+                        };
+                    }
                     delete newItem[key];
                 }
                 return newItem;
-            });
-        });
+            })
+        ));
 }
 
 type Property = 'item' | 'unit';
