@@ -1,9 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
+import { v4 as uuid } from 'uuid';
+
 import Status from '../../types/api';
+import Error from '../../types/error';
 //import { getCategories } from '../categories/categories.model';
-import { getIngredients } from '../ingredients/ingredients.model';
-import { getInstructions } from '../instructions/instructions.model';
-import { getRecipe, getRecipes, removeRecipe } from './recipes.model';
+import { addIngredients, getIngredients, updateIngredient } from '../ingredients/ingredients.model';
+import { addInstruction, getInstructions, updateInstruction } from '../instructions/instructions.model';
+import { addRecipe, getRecipe, getRecipes, removeRecipe, updateRecipe } from './recipes.model';
 
 type Data = Omit<Recipe, 'user_id'> & { ingredients: Ingredient[] } & {
     instructions?: Omit<Instruction, 'user_id' | 'recipe_id'>[]
@@ -98,4 +101,83 @@ export async function remove(req: Request, res: Response, next: NextFunction): P
         return;
     }
     res.status(Status.NoContent).send();
+}
+
+// TODO: Re-think for when something happens in the middle of procedure.
+export async function add(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.user;
+    const { title, ingredients, instructions } = req.body;
+
+    if (!title || !ingredients || !instructions) {
+        res.status(Status.BadRequest).send({
+            error: Error.MissingData,
+        });
+        return;
+    }
+
+    const newRecipe = {
+        id: uuid(),
+        title,
+    };
+
+    // Add instructions
+    const newInstructions = (instructions as Omit<Instruction, 'user_id'>[]).map(item => ({
+        id: uuid(),
+        step_no: item.step_no,
+        instruction: item.instruction,
+        recipe_id: newRecipe.id,
+    }));
+    await addInstruction(id, newInstructions).catch((err) => next(err));
+    // Add ingredients
+    const newIngredients = (ingredients as Ingredient[]).map(item => ({
+        id: uuid(),
+        amount: item.amount,
+        item_id: item.item_id,
+        recipe_id: newRecipe.id,
+    }));
+    await addIngredients(newIngredients).catch((err) => next(err));
+
+    //Add recipe
+    const result = await addRecipe(id, newRecipe).catch((err) => next(err));
+    res.status(Status.Created).send(result);
+}
+
+export async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.user;
+    const { id: recipeId } = req.params;
+    const { title, ingredients, instructions } = req.body;
+
+    if (!title && !ingredients && !instructions) {
+        res.status(Status.BadRequest).send({
+            error: Error.MissingData,
+        });
+        return;
+    }
+
+    const newRecipeData = {
+        title,
+    };
+
+    // Update instructions
+    await Promise.all([...instructions as Omit<Instruction, 'user_id'>[]].map(async ({ step_no, instruction }) => {
+        const newData = {
+            instruction,
+            step_no
+        };
+        await updateInstruction(id, recipeId, newData);
+    })).catch((err) => next(err));
+
+    /*     const newIngredients = (ingredients as Ingredient[]).map(item => ({
+            id: uuid(),
+            amount: item.amount,
+            item_id: item.item_id,
+            recipe_id: recipeId,
+        }));
+        await updateIngredient(id, recipeId, newIngredients).catch((err) => next(err)); */
+
+
+    //Update recipe
+    await updateRecipe(id, recipeId, newRecipeData);
+
+    res.status(Status.Succuss).send();
 }
