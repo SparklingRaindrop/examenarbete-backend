@@ -5,7 +5,9 @@ import { getIngredients } from '../ingredients/ingredients.model';
 import { getInstructions } from '../instructions/instructions.model';
 import { getRecipe, getRecipes, removeRecipe } from './recipes.model';
 
-type Data = Omit<Recipe, 'user_id'> & { ingredients: Ingredient[] };
+type Data = Omit<Recipe, 'user_id'> & { ingredients: Ingredient[] } & {
+    instruction?: Omit<Instruction, 'user_id' | 'recipe_id'>[]
+};
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
@@ -33,11 +35,13 @@ export async function getAll(req: Request, res: Response, next: NextFunction): P
         });
     } */
 
-    // Adding ingredients
-    const result = await Promise.all(recipes.map(async (recipe) => {
+    // Adding ingredients & instructions
+    const result = await Promise.all((recipes).map(async (recipe) => {
         const ingredients = await getIngredients(id, recipe.id).catch((err) => next(err));
+        const instruction = await getInstructions(id, recipe.id);
         const casted = recipe as Data;
         casted.ingredients = ingredients ? ingredients : [];
+        casted.instruction = instruction;
         return casted;
     }));
 

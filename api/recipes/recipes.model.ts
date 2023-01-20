@@ -1,6 +1,6 @@
 import knex from '../../knex/knex';
 
-export function getRecipes(userId: User['id'], keyword?: string): Promise<Omit<Recipe, 'user_id'>[]> {
+export async function getRecipes(userId: User['id'], keyword?: string): Promise<Omit<Recipe, 'user_id'>[]> {
     return knex<Recipe>('Recipe')
         .andWhere(builder =>
             builder
