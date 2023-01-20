@@ -60,10 +60,10 @@ interface Plan {
 }
 
 interface Ingredient {
-    item_id: Item['id'];
-    name: Item['name'];
-    unit: Unit['name'];
+    id: string;
     amount: number;
+    item_id: Item['id'];
+    recipe_id: Recipe['id'];
 }
 
 interface Stock {
