@@ -19,7 +19,7 @@ export async function getItems(userId: User['id'], keyword?: string): Promise<It
         )
         .select(
             'Item.id', 'Item.name',
-            'Unit.name as unit_id', 'Unit.name as unit_name'
+            'Unit.id as unit_id', 'Unit.name as unit_name'
         )
         .modify(function (queryBuilder) {
             if (keyword) {
