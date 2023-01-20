@@ -1,6 +1,10 @@
 import knex from '../../knex/knex';
 
-export async function getItems(userId: User['id']): Promise<Item[]> {
+type ItemResponse = Pick<Item, 'id' | 'name'> & {
+    unit: Pick<Unit, 'name' | 'id'>
+}
+
+export async function getItems(userId: User['id'], keyword?: string): Promise<ItemResponse[]> {
     return knex<Item>('Item')
         .leftJoin(
             'Unit',
@@ -17,8 +21,13 @@ export async function getItems(userId: User['id']): Promise<Item[]> {
             'Item.id', 'Item.name',
             'Unit.name as unit_id', 'Unit.name as unit_name'
         )
+        .modify(function (queryBuilder) {
+            if (keyword) {
+                queryBuilder.andWhere('Item.name', 'like', `%${keyword}%`);
+            }
+        })
         .then((result) => (
-            result.map(item => {
+            result.map((item: any) => {
                 const newItem = { ...item };
                 for (const key in newItem) {
                     if (!key.includes('_') || key === 'updated_at') continue;

@@ -7,7 +7,9 @@ import { addItem, updateItem, getItem, getItems, isDuplicatedItemName } from './
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
-    const data = await getItems(id).catch((err) => next(err));
+    const { keyword } = req.query;
+
+    const data = await getItems(id, keyword as string).catch((err) => next(err));
     res.json(data);
 }
 
