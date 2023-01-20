@@ -1,6 +1,6 @@
 import knex from '../../knex/knex';
 
-export function getItems(userId: User['id']): Promise<Item[]> {
+export async function getItems(userId: User['id']): Promise<Item[]> {
     return knex<Item>('Item')
         .leftJoin(
             'Unit',
@@ -13,10 +13,29 @@ export function getItems(userId: User['id']): Promise<Item[]> {
                 .where('Item.user_id', userId)
                 .orWhere('Item.user_id', null)
         )
-        .select('Item.id', 'Item.name', 'Unit.name as unit');
+        .select(
+            'Item.id', 'Item.name',
+            'Unit.name as unit_id', 'Unit.name as unit_name'
+        )
+        .then((result) => (
+            result.map(item => {
+                const newItem = { ...item };
+                for (const key in newItem) {
+                    if (!key.includes('_') || key === 'updated_at') continue;
+
+                    const [property, subProperty] = key.split('_');
+                    newItem[property] = {
+                        ...newItem[property],
+                        [subProperty]: newItem[key]
+                    };
+                    delete newItem[key];
+                }
+                return newItem;
+            })
+        ));
 }
 
-export function getItem(userId: User['id'], itemId: Item['id']): Promise<Item | undefined> {
+export async function getItem(userId: User['id'], itemId: Item['id']): Promise<Item | undefined> {
     return knex<Item>('Item')
         .leftJoin(
             'Unit',
@@ -30,8 +49,25 @@ export function getItem(userId: User['id'], itemId: Item['id']): Promise<Item | 
                 .where('Item.user_id', userId)
                 .orWhere('Item.user_id', null)
         )
-        .select('Item.id', 'Item.name', 'Unit.name as unit')
-        .first();
+        .select(
+            'Item.id', 'Item.name',
+            'Unit.name as unit_id', 'Unit.name as unit_name'
+        )
+        .first()
+        .then((result) => {
+            const newItem = { ...result };
+            for (const key in newItem) {
+                if (!key.includes('_') || key === 'updated_at') continue;
+
+                const [property, subProperty] = key.split('_');
+                newItem[property] = {
+                    ...newItem[property],
+                    [subProperty]: newItem[key]
+                };
+                delete newItem[key];
+            }
+            return newItem;
+        });
 }
 
 export async function addItem(user_id: User['id'], newData: Omit<Item, 'user_id'>): Promise<Omit<Item, 'user_id'>> {
