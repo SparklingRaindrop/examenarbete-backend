@@ -6,7 +6,7 @@ import { getInstructions } from '../instructions/instructions.model';
 import { getRecipe, getRecipes, removeRecipe } from './recipes.model';
 
 type Data = Omit<Recipe, 'user_id'> & { ingredients: Ingredient[] } & {
-    instruction?: Omit<Instruction, 'user_id' | 'recipe_id'>[]
+    instructions?: Omit<Instruction, 'user_id' | 'recipe_id'>[]
 };
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -41,7 +41,7 @@ export async function getAll(req: Request, res: Response, next: NextFunction): P
         const instruction = await getInstructions(id, recipe.id);
         const casted = recipe as Data;
         casted.ingredients = ingredients ? ingredients : [];
-        casted.instruction = instruction;
+        casted.instructions = instruction;
         return casted;
     }));
 
