@@ -47,3 +47,16 @@ export async function getIngredients(userId: User['id'], recipeId: Recipe['id'])
             })
         ));
 }
+
+export async function addIngredients(newData: Ingredient[]): Promise<Omit<Ingredient, 'user_id'>[]> {
+    return knex<Ingredient>('Ingredient')
+        .insert(newData)
+        .then(() => newData);
+}
+
+export function updateIngredient(userId: User['id'], ingredientId: Ingredient['id'], newData: Partial<Ingredient>): Promise<void> {
+    return knex<Ingredient>('Ingredient')
+        .where('id', ingredientId)
+        .andWhere('Ingredient.user_id', userId)
+        .update(newData);
+}
