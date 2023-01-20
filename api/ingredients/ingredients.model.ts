@@ -23,17 +23,24 @@ export async function getIngredients(userId: User['id'], recipeId: Recipe['id'])
                 .where('Item.user_id', userId)
                 .orWhere('Item.user_id', null)
         )
-        .then((result) => (
+        .then((result: Ingredient[]) => (
             result.map((item: any) => {
                 const newItem = { ...item };
                 for (const key in newItem) {
                     if (!key.includes('_') || key === 'updated_at') continue;
 
                     const [property, subProperty] = key.split('_');
-                    newItem[property] = {
-                        ...newItem[property],
-                        [subProperty]: newItem[key]
-                    };
+                    if (property === 'unit') {
+                        newItem.item.unit = {
+                            ...newItem.item.unit,
+                            [subProperty]: newItem[key]
+                        };
+                    } else {
+                        newItem[property] = {
+                            ...newItem[property],
+                            [subProperty]: newItem[key]
+                        };
+                    }
                     delete newItem[key];
                 }
                 return newItem;
