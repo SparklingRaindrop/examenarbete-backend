@@ -24,7 +24,7 @@ export async function getStocks(userId: User['id']): Promise<StockResponse[]> {
             'Unit.name as unit_name',
         )
         .then((result) => (
-            result.map((item: any) => {
+            result.map((item) => {
                 const newItem = { ...item };
                 for (const key in newItem) {
                     if (!key.includes('_') || key === 'updated_at') continue;
