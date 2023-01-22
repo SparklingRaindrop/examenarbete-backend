@@ -90,6 +90,12 @@ export async function up(knex: Knex): Promise<void> {
             table.timestamp('created_at');
             table.string('user_id').notNullable();
             table.foreign('user_id').references('User.id').onDelete('CASCADE');
+        })
+        .createTable('Session', function (table) {
+            table.increments('id').primary();
+            table.timestamp('created_at');
+            table.string('user_id').notNullable();
+            table.foreign('user_id').references('User.id').onDelete('CASCADE');
         });
 }
 
@@ -106,6 +112,7 @@ export async function down(knex: Knex): Promise<void> {
         .dropTable('Category_list')
         .dropTable('Instruction')
         .dropTable('Ingredient')
-        .dropTable('Service');
+        .dropTable('Service')
+        .dropTable('Session');
 }
 
