@@ -92,7 +92,7 @@ export async function up(knex: Knex): Promise<void> {
             table.foreign('user_id').references('User.id').onDelete('CASCADE');
         })
         .createTable('Session', function (table) {
-            table.increments('id').primary();
+            table.string('session_id').primary();
             table.timestamp('created_at');
             table.string('user_id').notNullable();
             table.foreign('user_id').references('User.id').onDelete('CASCADE');
