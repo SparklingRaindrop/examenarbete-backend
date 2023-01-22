@@ -50,8 +50,17 @@ export async function remove(req: Request, res: Response, next: NextFunction): P
 
 export async function removeAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
+    const { isChecked } = req.query;
 
-    const deletedCount = await removeAllGroceries(id).catch((err) => next(err));
+    let query: { isChecked: number } | undefined = undefined;
+    if (isChecked) {
+        query = isChecked === 'true' ? { isChecked: 1 } : { isChecked: 0 };
+    }
+
+    const deletedCount = await removeAllGroceries(
+        id,
+        query
+    ).catch((err) => next(err));
 
     if (!deletedCount) {
         res.status(Status.NotFound).send();

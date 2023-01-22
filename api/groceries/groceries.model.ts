@@ -68,9 +68,14 @@ export function removeGrocery(userId: User['id'], groceryId: Grocery['id']): Pro
         .del();
 }
 
-export function removeAllGroceries(userId: User['id']): Promise<number> {
+export function removeAllGroceries(userId: User['id'], filter?: Pick<Grocery, 'isChecked'>): Promise<number> {
     return knex<Grocery>('Grocery')
         .where('user_id', userId)
+        .andWhere(builder => {
+            if (filter) {
+                builder.andWhere('isChecked', '=', filter.isChecked);
+            }
+        })
         .del();
 }
 
