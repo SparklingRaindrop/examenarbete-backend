@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import Error from '../../types/error';
 import { isAvailableUnit } from '../units/units.model';
-import { addItem, updateItem, getItem, getItems, isDuplicatedItemName } from './item.model';
+import { addItem, updateItem, getItem, getItems, isDuplicatedItemName, isDefaultItem } from './item.model';
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
@@ -37,24 +37,18 @@ export async function add(req: Request, res: Response, next: NextFunction): Prom
         return;
     }
 
-    const newItemName = name.toLowerCase();
-
+    const itemName = name.toLowerCase();
     // Checking data
-    if (await isDuplicatedItemName(id, newItemName).catch((err) => next(err))) {
+    if (await isDuplicatedItemName(id, { name: itemName, }).catch((err) => next(err))) {
         res.status(Status.BadRequest).send({
             error: 'There is an item with the same name.'
         });
         return;
     }
 
-    if (!await isAvailableUnit(id, unit_id).catch((err) => next(err))) {
-        res.status(Status.BadRequest).send('Couldn\'t find a unit with the provided unit_id.');
-        return;
-    }
-
     const newItem = {
         id: uuid(),
-        name: newItemName,
+        name: itemName,
         unit_id,
     };
 
@@ -64,21 +58,18 @@ export async function add(req: Request, res: Response, next: NextFunction): Prom
 
 export async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
-    const { id: itemId } = req.params;
+    const { id: item_id } = req.params;
     const { name, unit_id } = req.body;
 
 
     const newItemName = name.toLowerCase();
 
     // Checking data
-    if (await isDuplicatedItemName(id, newItemName).catch((err) => next(err))) {
+
+    if (await isDuplicatedItemName(id, { name, item_id })) {
         res.status(Status.BadRequest).send({
             error: 'An item with the provided name already exists.'
         });
-        return;
-    }
-    if (!await isAvailableUnit(id, unit_id).catch((err) => next(err))) {
-        res.status(Status.BadRequest).send('Couldn\'t find a unit with the provided unit_id.');
         return;
     }
 
@@ -87,6 +78,6 @@ export async function update(req: Request, res: Response, next: NextFunction): P
         unit_id,
     };
 
-    await updateItem(id, itemId, newItem).catch((err) => next(err));
+    await updateItem(id, item_id, newItem).catch((err) => next(err));
     res.status(Status.Succuss).send();
 }

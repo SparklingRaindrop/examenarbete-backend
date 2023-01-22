@@ -26,6 +26,8 @@ export async function getItems(userId: User['id'], keyword?: string): Promise<It
             result.map((item: any) => {
                 const newItem = { ...item };
                 for (const key in newItem) {
+                    if (!key.includes('_') || key === 'updated_at') continue;
+
                     const [property, subProperty] = key.split('_');
                     newItem[property] = {
                         ...newItem[property],
@@ -73,7 +75,10 @@ export async function getItem(userId: User['id'], itemId: Item['id']): Promise<I
         });
 }
 
-export async function addItem(user_id: User['id'], newData: Omit<Item, 'user_id'>): Promise<Omit<Item, 'user_id'>> {
+export async function addItem(
+    user_id: User['id'],
+    newData: Omit<Item, 'user_id'>
+): Promise<Omit<Item, 'user_id'>> {
     return knex<Item>('Item')
         .insert({ ...newData, user_id })
         .then(() => newData);
@@ -90,13 +95,20 @@ export function updateItem(userId: User['id'], itemId: Item['id'], newData: Part
         .update(newData);
 }
 
-export async function isDuplicatedItemName(userId: User['id'], name: Item['name']): Promise<boolean> {
+export async function isDuplicatedItemName(
+    userId: User['id'],
+    { name, item_id }: { name: Item['name'], item_id?: Item['id'] }
+): Promise<boolean> {
     return knex<Item>('Item')
         .where('name', name)
+        .where(builder => {
+            if (item_id) {
+                builder.whereNot('id', item_id);
+            }
+        })
         .andWhere(builder =>
             builder
                 .where('Item.user_id', userId)
-                .orWhere('Item.user_id', null)
         )
         .then((result) => result.length !== 0);
 }
