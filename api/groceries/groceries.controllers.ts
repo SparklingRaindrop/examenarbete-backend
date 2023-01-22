@@ -6,7 +6,7 @@ import { getIngredients } from '../ingredients/ingredients.model';
 
 import { getItem } from '../items/item.model';
 import { getPlans } from '../plans/plans.model';
-import { getStocks, StockResponse } from '../stocks/stocks.model';
+import { getStocks } from '../stocks/stocks.model';
 import { addGrocery, updateGrocery, getGroceries, getGrocery, removeGrocery, GroceryNewData } from './groceries.model';
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {

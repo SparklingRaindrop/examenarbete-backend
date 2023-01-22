@@ -15,13 +15,13 @@ export async function getPlans(userId: User['id'], range: { from: Date | null, t
             '=',
             'Recipe.id'
         )
-        .where('user_id', userId)
+        .where('Plan.user_id', userId)
         .whereBetween('date', [
             range.from ? range.from.getTime() : currentMonth.from.getTime(),
             range.to ? range.to.getTime() : currentMonth.to.getTime()
         ])
         .select(
-            'id', 'updated_at', 'date', 'type',
+            'Plan.id', 'updated_at', 'date', 'type',
             'recipe_id AS recipe_id', 'Recipe.title AS recipe_title',
         )
         .then((result: any) => (
@@ -49,7 +49,7 @@ export async function getPlans(userId: User['id'], range: { from: Date | null, t
         ));
 }
 
-export function getPlan(userId: User['id'], planId: Plan['id']): Promise<PlanResponse> {
+export async function getPlan(userId: User['id'], planId: Plan['id']): Promise<PlanResponse> {
     return knex<Plan>('Plan')
         .leftJoin(
             'Recipe',
@@ -57,11 +57,11 @@ export function getPlan(userId: User['id'], planId: Plan['id']): Promise<PlanRes
             '=',
             'Recipe.id'
         )
-        .where('user_id', userId)
+        .where('Plan.user_id', userId)
         .andWhere('id', planId)
         .first()
         .select(
-            'id', 'updated_at', 'date', 'type',
+            'Plan.id', 'updated_at', 'date', 'type',
             'recipe_id AS recipe_id', 'Recipe.title AS recipe_title',
         )
         .then((result: any) => {
