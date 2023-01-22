@@ -6,7 +6,7 @@ import { getIngredients } from '../ingredients/ingredients.model';
 
 import { getItem } from '../items/item.model';
 import { getPlans } from '../plans/plans.model';
-import { getStocks } from '../stocks/stocks.model';
+import { getStocks, updateStock } from '../stocks/stocks.model';
 import {
     addGrocery,
     updateGrocery,
@@ -139,17 +139,6 @@ function getDefaultDate() {
     return { from, to };
 }
 
-function subtractStocks(ingredients: IngredientResponse[], stocks: StockResponse[]): IngredientResponse[] {
-    return ingredients.reduce((result: IngredientResponse[], currentItem, index) => {
-        const itemInStock = stocks.find(({ item }) => item.id === currentItem.id);
-        if (itemInStock) {
-            currentItem.amount = ingredients[index].amount - itemInStock.amount;
-        }
-        result.push(currentItem);
-        return result;
-    }, []);
-}
-
 function parseData(data: IngredientResponse[]): Omit<Grocery, 'user_id'>[] {
     return data.map(({ item, amount }) => ({
         id: uuid(),
@@ -184,7 +173,27 @@ export async function generateGroceries(req: Request, res: Response, next: NextF
 
     // calculate
     const stocks = await getStocks(id);
-    const result = subtractStocks(ingredients, stocks);
+    const result = ingredients.reduce((result: IngredientResponse[], currentItem) => {
+        const itemInStock = stocks.find(({ item }) => item.id === currentItem.item.id);
+        if (!itemInStock) {
+            result.push(currentItem);
+
+        } else if (itemInStock) {
+            const { id: stockId } = itemInStock;
+
+            if (currentItem.amount <= itemInStock.amount) {
+                const newAmount = itemInStock.amount - currentItem.amount;
+                updateStock(id, stockId, { amount: newAmount });
+
+            } else {
+                updateStock(id, stockId, { amount: 0 });
+                const newItem = { ...currentItem };
+                newItem.amount = currentItem.amount - itemInStock.amount;
+                result.push(currentItem);
+            }
+        }
+        return result;
+    }, []);
 
     const addedData = await addGrocery(id, parseData(result));
     res.status(Status.Created).send(addedData);

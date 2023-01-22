@@ -117,7 +117,11 @@ export async function addStock(userId: User['id'], newData: Omit<Stock, 'user_id
         .then(() => newData);
 }
 
-export async function updateStock(userId: User['id'], stockId: Stock['id'], newData: Partial<Pick<Stock, 'amount' | 'item_id'>>): Promise<StockResponse> {
+export async function updateStock(
+    userId: User['id'],
+    stockId: Stock['id'],
+    newData: Partial<Pick<Stock, 'amount' | 'item_id'>>
+): Promise<StockResponse> {
     return knex<Stock>('Stock')
         .where('id', stockId)
         .andWhere('user_id', userId)
