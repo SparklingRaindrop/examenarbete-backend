@@ -2,8 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import Error from '../../types/error';
-import { isAvailableUnit } from '../units/units.model';
-import { addItem, updateItem, getItem, getItems, isDuplicatedItemName, isDefaultItem } from './item.model';
+import { addItem, updateItem, getItem, getItems, isDuplicatedItemName } from './item.model';
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
@@ -65,8 +64,14 @@ export async function update(req: Request, res: Response, next: NextFunction): P
     const newItemName = name.toLowerCase();
 
     // Checking data
-
-    if (await isDuplicatedItemName(id, { name, item_id })) {
+    const originalItem = await getItem(id, item_id).catch((err) => next(err));
+    if (originalItem && originalItem.name === name && originalItem.isDefault) {
+        res.status(Status.BadRequest).send({
+            error: 'Cannot update the name on default items'
+        });
+        return;
+    }
+    if (await isDuplicatedItemName(id, { name, item_id }).catch((err) => next(err))) {
         res.status(Status.BadRequest).send({
             error: 'An item with the provided name already exists.'
         });

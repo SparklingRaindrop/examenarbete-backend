@@ -15,7 +15,8 @@ export async function getItems(userId: User['id'], keyword?: string): Promise<It
         )
         .select(
             'Item.id', 'Item.name',
-            'Unit.id as unit_id', 'Unit.name as unit_name'
+            'Unit.id as unit_id', 'Unit.name AS unit_name',
+            knex.raw('CASE WHEN Item.user_id IS NULL THEN 1 ELSE 0 END AS isDefault')
         )
         .modify(function (queryBuilder) {
             if (keyword) {
@@ -35,6 +36,8 @@ export async function getItems(userId: User['id'], keyword?: string): Promise<It
                     };
                     delete newItem[key];
                 }
+
+                newItem.isDefault = item.isDefault === 1 ? true : false;
                 return newItem;
             })
         ));
@@ -56,7 +59,8 @@ export async function getItem(userId: User['id'], itemId: Item['id']): Promise<I
         )
         .select(
             'Item.id', 'Item.name',
-            'Unit.name as unit_id', 'Unit.name as unit_name'
+            'Unit.name as unit_id', 'Unit.name as unit_name',
+            knex.raw('CASE WHEN Item.user_id IS NULL THEN 1 ELSE 0 END AS isDefault')
         )
         .first()
         .then((result) => {
@@ -71,6 +75,8 @@ export async function getItem(userId: User['id'], itemId: Item['id']): Promise<I
                 };
                 delete newItem[key];
             }
+
+            newItem.isDefault = result.isDefault === 1 ? true : false;
             return newItem;
         });
 }
