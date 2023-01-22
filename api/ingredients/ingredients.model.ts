@@ -1,8 +1,19 @@
 import knex from '../../knex/knex';
 
-export async function getIngredients(userId: User['id'], recipeId: Recipe['id']): Promise<Ingredient[]> {
+export type IngredientResponse = Pick<Ingredient, 'id' | 'amount'> & {
+    item: ItemResponse,
+    amount: Ingredient['amount'];
+};
+
+export async function getIngredients(userId: User['id'], recipeId: Recipe['id'] | Recipe['id'][]): Promise<IngredientResponse[]> {
     return knex<Ingredient & Item & Unit>('Ingredient')
-        .where('Ingredient.recipe_id', recipeId)
+        .where(builder => {
+            if (Array.isArray(recipeId)) {
+                builder.whereIn('Ingredient.recipe_id', recipeId);
+            } else {
+                builder.where('Ingredient.recipe_id', recipeId);
+            }
+        })
         .leftJoin(
             'Item',
             'Ingredient.item_id',
@@ -14,15 +25,16 @@ export async function getIngredients(userId: User['id'], recipeId: Recipe['id'])
             'Unit.id'
         )
         .select(
-            'Ingredient.amount',
-            'Item.id as item_id', 'Item.name as item_name',
-            'Unit.id as unit_id', 'Unit.name as unit_name'
+            'Item.id AS item_id', 'Item.name AS item_name',
+            'Unit.id AS unit_id', 'Unit.name AS unit_name',
+            knex.raw('SUM(Ingredient.amount) AS amount')
         )
         .andWhere(builder =>
             builder
                 .where('Item.user_id', userId)
                 .orWhere('Item.user_id', null)
         )
+        .groupByRaw('Item.id')
         .then((result: Ingredient[]) => (
             result.map((item: any) => {
                 const newItem = { ...item };
