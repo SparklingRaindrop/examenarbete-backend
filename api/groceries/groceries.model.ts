@@ -68,6 +68,12 @@ export function removeGrocery(userId: User['id'], groceryId: Grocery['id']): Pro
         .del();
 }
 
+export function removeAllGroceries(userId: User['id']): Promise<number> {
+    return knex<Grocery>('Grocery')
+        .where('user_id', userId)
+        .del();
+}
+
 export async function addGrocery(user_id: User['id'], newData: Omit<Grocery, 'user_id'> | Omit<Grocery, 'user_id'>[]): Promise<Omit<Grocery, 'user_id'> | Omit<Grocery, 'user_id'>[]> {
     if (Array.isArray(newData)) {
         const data = (newData as Grocery[]).map(item => ({

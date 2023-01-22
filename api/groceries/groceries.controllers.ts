@@ -7,7 +7,15 @@ import { getIngredients } from '../ingredients/ingredients.model';
 import { getItem } from '../items/item.model';
 import { getPlans } from '../plans/plans.model';
 import { getStocks } from '../stocks/stocks.model';
-import { addGrocery, updateGrocery, getGroceries, getGrocery, removeGrocery, GroceryNewData } from './groceries.model';
+import {
+    addGrocery,
+    updateGrocery,
+    getGroceries,
+    getGrocery,
+    removeGrocery,
+    removeAllGroceries,
+    GroceryNewData
+} from './groceries.model';
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
@@ -31,6 +39,19 @@ export async function remove(req: Request, res: Response, next: NextFunction): P
     const { id: groceryId } = req.params;
 
     const deletedCount = await removeGrocery(id, groceryId).catch((err) => next(err));
+
+    if (!deletedCount) {
+        res.status(Status.NotFound).send();
+        return;
+    }
+
+    res.status(Status.NoContent).send();
+}
+
+export async function removeAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.user;
+
+    const deletedCount = await removeAllGroceries(id).catch((err) => next(err));
 
     if (!deletedCount) {
         res.status(Status.NotFound).send();
