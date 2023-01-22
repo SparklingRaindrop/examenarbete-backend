@@ -1,10 +1,5 @@
 import knex from '../../knex/knex';
 
-export type IngredientResponse = Pick<Ingredient, 'id' | 'amount'> & {
-    item: ItemResponse,
-    amount: Ingredient['amount'];
-};
-
 export async function getIngredients(userId: User['id'], recipeId: Recipe['id'] | Recipe['id'][]): Promise<IngredientResponse[]> {
     return knex<Ingredient & Item & Unit>('Ingredient')
         .where(builder => {

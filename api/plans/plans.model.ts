@@ -7,22 +7,77 @@ const currentMonth = {
 };
 
 // range is set to current month by default
-export function getPlans(userId: User['id'], range: { from: Date | null, to: Date | null } = currentMonth): Promise<Plan[]> {
+export async function getPlans(userId: User['id'], range: { from: Date | null, to: Date | null } = currentMonth): Promise<PlanResponse[]> {
     return knex<Plan>('Plan')
+        .leftJoin(
+            'Recipe',
+            'Plan.recipe_id',
+            '=',
+            'Recipe.id'
+        )
         .where('user_id', userId)
         .whereBetween('date', [
             range.from ? range.from.getTime() : currentMonth.from.getTime(),
             range.to ? range.to.getTime() : currentMonth.to.getTime()
         ])
-        .select('id', 'updated_at', 'date', 'type', 'recipe_id');
+        .select(
+            'id', 'updated_at', 'date', 'type',
+            'recipe_id AS recipe_id', 'Recipe.title AS recipe_title',
+        )
+        .then((result: any) => (
+            result.map((item: any) => {
+                const newItem = { ...item };
+                for (const key in newItem) {
+                    if (!key.includes('_') || key === 'updated_at') continue;
+
+                    const [property, subProperty] = key.split('_');
+                    if (property === 'unit') {
+                        newItem.item.unit = {
+                            ...newItem.item.unit,
+                            [subProperty]: newItem[key]
+                        };
+                    } else {
+                        newItem[property] = {
+                            ...newItem[property],
+                            [subProperty]: newItem[key]
+                        };
+                    }
+                    delete newItem[key];
+                }
+                return newItem;
+            })
+        ));
 }
 
-export function getPlan(userId: User['id'], planId: Plan['id']): Promise<Plan> {
+export function getPlan(userId: User['id'], planId: Plan['id']): Promise<PlanResponse> {
     return knex<Plan>('Plan')
+        .leftJoin(
+            'Recipe',
+            'Plan.recipe_id',
+            '=',
+            'Recipe.id'
+        )
         .where('user_id', userId)
         .andWhere('id', planId)
         .first()
-        .select('id', 'updated_at', 'date', 'type', 'recipe_id');
+        .select(
+            'id', 'updated_at', 'date', 'type',
+            'recipe_id AS recipe_id', 'Recipe.title AS recipe_title',
+        )
+        .then((result: any) => {
+            const newItem = { ...result };
+            for (const key in newItem) {
+                if (!key.includes('_') || key === 'updated_at') continue;
+
+                const [property, subProperty] = key.split('_');
+                newItem[property] = {
+                    ...newItem[property],
+                    [subProperty]: newItem[key]
+                };
+                delete newItem[key];
+            }
+            return newItem;
+        });
 }
 
 export function removePlan(userId: User['id'], planId: Plan['id']): Promise<number> {
@@ -32,7 +87,7 @@ export function removePlan(userId: User['id'], planId: Plan['id']): Promise<numb
         .del();
 }
 
-export async function addPlan(userId: User['id'], newData: Plan): Promise<Plan> {
+export async function addPlan(userId: User['id'], newData: Omit<Plan, 'user_id'>): Promise<Omit<Plan, 'user_id'>> {
     return knex<Plan & { user_id: string }>('Plan')
         .insert({
             ...newData,
@@ -41,7 +96,10 @@ export async function addPlan(userId: User['id'], newData: Plan): Promise<Plan> 
         .then(() => newData);
 }
 
-export function updatePlan(userId: User['id'], planId: Plan['id'], newData: Partial<Pick<Plan, 'date' | 'type' | 'updated_at'> & { recipe_id: Recipe['id'] }>): Promise<void> {
+export function updatePlan(
+    userId: User['id'],
+    planId: Plan['id'],
+    newData: Partial<Pick<Plan, 'date' | 'type' | 'updated_at'> & { recipe_id: Recipe['id'] }>): Promise<void> {
     const { date, type, recipe_id } = newData;
     return knex<Plan>('Plan')
         .where('id', planId)

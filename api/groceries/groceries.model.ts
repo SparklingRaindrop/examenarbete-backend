@@ -1,6 +1,6 @@
 import knex from '../../knex/knex';
 
-export async function getGroceries(userId: User['id']): Promise<Grocery[]> {
+export async function getGroceries(userId: User['id']): Promise<GroceryResponse[]> {
     return knex<Grocery>('Grocery')
         .leftJoin(
             'Item',
@@ -29,20 +29,23 @@ export async function getGroceries(userId: User['id']): Promise<Grocery[]> {
                     if (!key.includes('_') || key === 'updated_at') continue;
 
                     const [property, subProperty] = key.split('_');
-                    newItem[property] = {
-                        ...newItem[property],
-                        [subProperty]: newItem[key]
-                    };
+                    if (property === 'unit') {
+                        newItem.item.unit = {
+                            ...newItem.item.unit,
+                            [subProperty]: newItem[key]
+                        };
+                    } else {
+                        newItem[property] = {
+                            ...newItem[property],
+                            [subProperty]: newItem[key]
+                        };
+                    }
                     delete newItem[key];
                 }
                 return newItem;
             })
         ));
 }
-
-type GroceryResponse = {
-    name: Pick<Item, 'name'>
-} & Grocery;
 
 export function getGrocery(userId: User['id'], groceryId: Grocery['id']): Promise<GroceryResponse> {
     return knex<GroceryResponse>('Grocery')
@@ -81,12 +84,12 @@ export async function addGrocery(user_id: User['id'], newData: Omit<Grocery, 'us
     }
 }
 
-export interface newData extends Omit<Grocery, 'amount' | 'isChecked' | 'id' | 'user_id'> {
-    amount?: number,
-    isChecked?: boolean,
-}
+export type GroceryNewData = Partial<Pick<Grocery, 'amount' | 'isChecked'>> & Pick<Grocery, 'updated_at'>;
 
-export function updateGrocery(groceryId: Grocery['id'], newData: newData): Promise<void> {
+export function updateGrocery(
+    groceryId: Grocery['id'],
+    newData: Partial<Pick<Grocery, 'amount' | 'isChecked'>> & Pick<Grocery, 'updated_at'>
+): Promise<void> {
     const { isChecked, amount, updated_at } = newData;
     return knex<Grocery>('Grocery')
         .where('id', groceryId)

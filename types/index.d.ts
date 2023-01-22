@@ -5,12 +5,9 @@ interface User {
     password: string;
 }
 
-interface Grocery {
+interface Unit {
     id: string;
-    item_id: Item['id'];
-    updated_at: Date;
-    amount: number;
-    isChecked: boolean | number;
+    name: string;
     user_id: User['id'];
 }
 
@@ -21,34 +18,21 @@ interface Item {
     user_id?: User['id'];
 }
 
-interface Instruction {
-    id: string;
-    recipe_id: Recipe['id'];
-    step_no: number;
-    instruction: string;
-    user_id?: User['id'];
+interface ItemResponse extends Pick<Item, 'id' | 'name'> {
+    unit: Omit<Unit, 'user_id'>
 }
 
-interface Unit {
+interface Grocery {
     id: string;
-    name: string;
+    item_id: Item['id'];
+    updated_at: Date;
+    amount: number;
+    isChecked: boolean | number;
     user_id: User['id'];
 }
 
-interface Recipe {
-    id: string;
-    title: string;
-    user_id?: User['id'];
-}
-interface Category {
-    id: string;
-    name: string;
-}
-
-interface CategoryList {
-    name: Category['name'],
-    id: Category['id'],
-    recipe_id?: Recipe['id'];
+interface GroceryResponse extends Omit<Grocery, 'user_id' | 'item_id'> {
+    item: ItemResponse,
 }
 
 interface Plan {
@@ -59,11 +43,41 @@ interface Plan {
     recipe_id: Recipe['id'];
 }
 
+interface PlanResponse extends Omit<Plan, 'recipe_id'> {
+    recipe: RecipeResponse;
+}
+
 interface Ingredient {
     id: string;
     amount: number;
     item_id: Item['id'];
     recipe_id: Recipe['id'];
+}
+
+interface IngredientResponse extends Pick<Ingredient, 'id' | 'amount'> {
+    item: ItemResponse,
+    amount: Ingredient['amount'];
+}
+
+interface InstructionResponse {
+    id: string;
+    step_no: number;
+    instruction: string;
+}
+interface Instruction extends InstructionResponse {
+    recipe_id: Recipe['id'];
+    user_id?: User['id'];
+}
+
+interface Recipe {
+    id: string;
+    title: string;
+    user_id?: User['id'];
+}
+
+interface RecipeResponse extends Omit<Recipe, 'user_id'> {
+    ingredients: IngredientResponse[];
+    instructions: InstructionResponse[];
 }
 
 interface Stock {
@@ -73,6 +87,21 @@ interface Stock {
     user_id: User['id'];
 }
 
+interface StockResponse extends Pick<Stock, 'id' | 'amount'> {
+    item: Pick<Item, 'id' | 'name'>
+    unit: Pick<Unit, 'id' | 'name'>
+}
 interface KnexError extends Error {
     code?: number;
+}
+
+interface Category {
+    id: string;
+    name: string;
+}
+
+interface CategoryList {
+    name: Category['name'],
+    id: Category['id'],
+    recipe_id?: Recipe['id'];
 }

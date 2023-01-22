@@ -1,11 +1,5 @@
 import knex from '../../knex/knex';
 
-export type StockResponse = Pick<Stock, 'id' | 'amount'> & {
-    item: Pick<Item, 'id' | 'name'>
-} & {
-    unit: Pick<Unit, 'id' | 'name'>
-}
-
 export async function getStocks(userId: User['id']): Promise<StockResponse[]> {
     return knex<Stock>('Stock')
         .leftJoin(

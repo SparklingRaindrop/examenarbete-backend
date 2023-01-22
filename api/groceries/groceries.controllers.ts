@@ -2,12 +2,12 @@ import { NextFunction, Request, Response } from 'express';
 import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import { default as ErrorMsg } from '../../types/error';
-import { getIngredients, IngredientResponse } from '../ingredients/ingredients.model';
+import { getIngredients } from '../ingredients/ingredients.model';
 
 import { getItem } from '../items/item.model';
 import { getPlans } from '../plans/plans.model';
 import { getStocks, StockResponse } from '../stocks/stocks.model';
-import { addGrocery, updateGrocery, getGroceries, getGrocery, newData, removeGrocery } from './groceries.model';
+import { addGrocery, updateGrocery, getGroceries, getGrocery, removeGrocery, GroceryNewData } from './groceries.model';
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
@@ -88,8 +88,7 @@ export async function update(req: Request, res: Response, next: NextFunction): P
         return;
     }
 
-    const newData: newData = {
-        item_id: existingData.item_id,
+    const newData: GroceryNewData = {
         updated_at: new Date(),
         amount,
         isChecked,
@@ -146,7 +145,7 @@ export async function generateGroceries(req: Request, res: Response, next: NextF
         throw new Error('GetPlan returned nothing!');
     }
 
-    const recipeIdList = plans.map(({ recipe_id }) => recipe_id);
+    const recipeIdList = plans.map(({ recipe }) => recipe.id);
     const ingredients = await getIngredients(id, recipeIdList).catch((err) => next(err));
 
     if (!ingredients || ingredients.length === 0) {

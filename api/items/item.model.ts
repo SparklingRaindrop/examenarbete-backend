@@ -1,9 +1,5 @@
 import knex from '../../knex/knex';
 
-type ItemResponse = Pick<Item, 'id' | 'name'> & {
-    unit: Pick<Unit, 'name' | 'id'>
-}
-
 export async function getItems(userId: User['id'], keyword?: string): Promise<ItemResponse[]> {
     return knex<Item>('Item')
         .leftJoin(
@@ -30,8 +26,6 @@ export async function getItems(userId: User['id'], keyword?: string): Promise<It
             result.map((item: any) => {
                 const newItem = { ...item };
                 for (const key in newItem) {
-                    if (!key.includes('_') || key === 'updated_at') continue;
-
                     const [property, subProperty] = key.split('_');
                     newItem[property] = {
                         ...newItem[property],
@@ -44,7 +38,7 @@ export async function getItems(userId: User['id'], keyword?: string): Promise<It
         ));
 }
 
-export async function getItem(userId: User['id'], itemId: Item['id']): Promise<Item | undefined> {
+export async function getItem(userId: User['id'], itemId: Item['id']): Promise<ItemResponse | undefined> {
     return knex<Item>('Item')
         .leftJoin(
             'Unit',

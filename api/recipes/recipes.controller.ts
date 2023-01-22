@@ -4,13 +4,9 @@ import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import Error from '../../types/error';
 //import { getCategories } from '../categories/categories.model';
-import { addIngredients, getIngredients, updateIngredient } from '../ingredients/ingredients.model';
+import { addIngredients, getIngredients } from '../ingredients/ingredients.model';
 import { addInstruction, getInstructions, updateInstruction } from '../instructions/instructions.model';
 import { addRecipe, getRecipe, getRecipes, removeRecipe, updateRecipe } from './recipes.model';
-
-type Data = Omit<Recipe, 'user_id'> & { ingredients: Ingredient[] } & {
-    instructions?: Omit<Instruction, 'user_id' | 'recipe_id'>[]
-};
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
@@ -23,30 +19,15 @@ export async function getAll(req: Request, res: Response, next: NextFunction): P
         return;
     }
 
-    // Adding category
-    /* const categoryList = await getCategories(id);
-    if (categoryList) {
-        result = result.map(recipe => {
-            const { id: recipeId } = recipe;
-            const category = categoryList.filter(category =>
-                category.recipe_id === recipeId
-            );
-            category.forEach(c => delete c.recipe_id);
-            recipe.category = category;
-
-            return recipe;
-        });
-    } */
-
     // Adding ingredients & instructions
-    const result = await Promise.all((recipes).map(async (recipe) => {
-        const ingredients = await getIngredients(id, recipe.id).catch((err) => next(err));
+    const result = await Promise.all(recipes.map(async (recipe) => {
+        const ingredients = await getIngredients(id, recipe.id);
         const instruction = await getInstructions(id, recipe.id);
-        const casted = recipe as Data;
+        const casted = recipe as RecipeResponse;
         casted.ingredients = ingredients ? ingredients : [];
         casted.instructions = instruction;
         return casted;
-    }));
+    })).catch((err) => next(err));
 
     res.send(result);
 }
@@ -61,26 +42,7 @@ export async function getOne(req: Request, res: Response, next: NextFunction): P
         return;
     }
 
-    const result = recipe as Recipe & {
-        category?: Omit<CategoryList, 'recipe_id'>[],
-        ingredients?: Ingredient[];
-        instructions?: Omit<Instruction, 'user_id' | 'recipe_id'>[];
-    };
-
-    // Adding category
-    /* const categoryList = await getCategories(id);
-    if (categoryList) {
-        result = result.map(recipe => {
-            const { id: recipeId } = recipe;
-            const category = categoryList.filter(category =>
-                category.recipe_id === recipeId
-            );
-            category.forEach(c => delete c.recipe_id);
-            recipe.category = category;
-
-            return recipe;
-        });
-    } */
+    const result = recipe as RecipeResponse;
 
     // Adding ingredients
     const ingredients = await getIngredients(id, recipe.id).catch((err) => next(err));

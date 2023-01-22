@@ -1,7 +1,7 @@
 import knex from '../../knex/knex';
 import { v4 as uuid } from 'uuid';
 
-export function getInstructions(userId: User['id'], recipeId: Recipe['id']): Promise<Omit<Instruction, 'user_id' | 'recipe_id'>[]> {
+export function getInstructions(userId: User['id'], recipeId: Recipe['id']): Promise<InstructionResponse[]> {
     return knex<Instruction>('Instruction')
         .where(
             'recipe_id',
@@ -28,7 +28,11 @@ export async function addInstruction(user_id: User['id'], newData: Omit<Instruct
         .then(() => newData);
 }
 
-export async function updateInstruction(userId: User['id'], recipeId: Recipe['id'], newData: Pick<Instruction, 'instruction' | 'step_no'>): Promise<void> {
+export async function updateInstruction(
+    userId: User['id'],
+    recipeId: Recipe['id'],
+    newData: Pick<Instruction, 'instruction' | 'step_no'>
+): Promise<void> {
     return knex<Instruction>('Instruction')
         .where('recipe_id', recipeId)
         .andWhere('Instruction.user_id', userId)

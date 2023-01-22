@@ -20,25 +20,6 @@ function isMealType(mealType: string): mealType is MealType {
     return MEALS.includes(mealType as MealType);
 }
 
-async function addRecipeDetails(res: Response, userId: User['id'], plan: Plan) {
-    const currentPlan = plan as Omit<Plan, 'recipe_id'> & {
-        recipe_id?: string, recipe?: Omit<Recipe, 'user_id'>
-    };
-    const { recipe_id } = plan;
-    if (!recipe_id) {
-        console.error('A plan should contain recipe_id.');
-        res.status(Status.ServerError).send({
-            error: Error.SomethingHappened,
-        });
-        return;
-    }
-
-    const recipe = await getRecipe(userId, recipe_id);
-    currentPlan.recipe = recipe;
-    delete currentPlan.recipe_id;
-    return currentPlan;
-}
-
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
     const { start, end } = req.query;
@@ -68,13 +49,7 @@ export async function getAll(req: Request, res: Response, next: NextFunction): P
         return;
     }
 
-    // Adding recipe data
-    const result = await Promise.all([...plans].map(async (plan) => {
-        const planWithRecipeDetails = await addRecipeDetails(res, id, plan);
-        return planWithRecipeDetails;
-    })).catch((err) => next(err));
-
-    res.json(result);
+    res.json(plans);
 }
 
 export async function getOne(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -87,8 +62,7 @@ export async function getOne(req: Request, res: Response, next: NextFunction): P
         return;
     }
 
-    const planWithRecipeDetails = await addRecipeDetails(res, id, plan).catch((err) => next(err));
-    res.json(planWithRecipeDetails);
+    res.json(plan);
 }
 
 export async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
