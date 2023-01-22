@@ -1,23 +1,23 @@
 import { NextFunction, Request, Response } from 'express';
 import { Md5 } from 'ts-md5';
 import { v4 as uuid } from 'uuid';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
 import Status from '../../types/api';
 import { addUser, getUser, isAvailableEmail, removeUser, updateUser } from './auth.model';
-import { default as ErrorMsg } from '../../types/error';
 import { activateUserId, deactivateToken } from '../../utils/service.model';
+import { createSession, Session } from '../../utils/session.model';
 
 dotenv.config();
 
-function generateToken(data: Pick<User, 'id'>) {
+function generateToken(data: Partial<Pick<User, 'id'> & Pick<Session, 'session_id'>>, expiresIn?: SignOptions['expiresIn']) {
     if (!process.env.SECRET_KEY) {
         throw new Error('Set SECRET_KY for generating access tokens');
     }
     return jwt.sign(data,
         process.env.SECRET_KEY,
-        { expiresIn: process.env.TOKEN_DURATION || '1800s' }
+        { expiresIn: expiresIn || process.env.TOKEN_DURATION }
     );
 }
 
@@ -42,7 +42,6 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
         return;
     }
 
-
     const user = await getUser({ ...(username ? { username } : { email }) })
         .catch((err) => {
             next(err);
@@ -63,15 +62,31 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
         return;
     }
 
-    const userData: Pick<User, 'id'> = { id: user.id };
     await activateUserId(user.id)
         .catch((err) => {
             next(err);
             return;
         });
 
-    const token = generateToken(userData);
-    res.status(Status.Created).json({ token, expires: getExpiredAt() });
+    const newSession = {
+        user_id: user.id,
+        session_id: uuid(),
+        created_at: new Date(),
+    };
+    await createSession(newSession);
+
+    const userData = {
+        id: user.id,
+        session_id: newSession.session_id
+    };
+    const accessToken = generateToken(userData, '300s');
+    const sessionToken = generateToken({ session_id: newSession.session_id }, '2h');
+
+    res.status(Status.Created).send({
+        accessToken,
+        sessionToken,
+        expires: getExpiredAt()
+    });
 
 }
 
