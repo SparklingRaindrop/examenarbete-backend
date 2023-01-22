@@ -1,7 +1,5 @@
 import knex from '../../knex/knex';
 
-const columns = ['Grocery.id', 'item_id', 'updated_at', 'amount', 'isChecked'];
-
 export async function getGroceries(userId: User['id']): Promise<Grocery[]> {
     return knex<Grocery>('Grocery')
         .leftJoin(
@@ -17,7 +15,7 @@ export async function getGroceries(userId: User['id']): Promise<Grocery[]> {
             'Unit.id'
         )
         .select([
-            ...columns,
+            'Grocery.id', 'updated_at', 'amount', 'isChecked',
             'Item.id as item_id',
             'Item.name as item_name',
             'Unit.id as unit_id',
@@ -67,10 +65,20 @@ export function removeGrocery(userId: User['id'], groceryId: Grocery['id']): Pro
         .del();
 }
 
-export async function addGrocery(user_id: User['id'], newData: Omit<Grocery, 'user_id'>): Promise<Omit<Grocery, 'user_id'>> {
-    return knex<Grocery>('Grocery')
-        .insert({ ...newData, user_id })
-        .then(() => newData);
+export async function addGrocery(user_id: User['id'], newData: Omit<Grocery, 'user_id'> | Omit<Grocery, 'user_id'>[]): Promise<Omit<Grocery, 'user_id'> | Omit<Grocery, 'user_id'>[]> {
+    if (Array.isArray(newData)) {
+        const data = (newData as Grocery[]).map(item => ({
+            ...item,
+            user_id
+        }));
+        return knex<Grocery>('Grocery')
+            .insert(data)
+            .then(() => newData);
+    } else {
+        return knex<Grocery>('Grocery')
+            .insert({ ...newData, user_id })
+            .then(() => newData);
+    }
 }
 
 export interface newData extends Omit<Grocery, 'amount' | 'isChecked' | 'id' | 'user_id'> {
