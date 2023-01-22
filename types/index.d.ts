@@ -19,7 +19,8 @@ interface Item {
 }
 
 interface ItemResponse extends Pick<Item, 'id' | 'name'> {
-    unit: Omit<Unit, 'user_id'>
+    unit: Omit<Unit, 'user_id'>;
+    isDefault: boolean;
 }
 
 interface Grocery {
