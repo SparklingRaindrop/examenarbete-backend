@@ -65,7 +65,7 @@ export async function update(req: Request, res: Response, next: NextFunction): P
 
     // Checking data
     const originalItem = await getItem(id, item_id).catch((err) => next(err));
-    if (originalItem && originalItem.name === name && originalItem.isDefault) {
+    if (originalItem && originalItem.name !== name && originalItem.isDefault) {
         res.status(Status.BadRequest).send({
             error: 'Cannot update the name on default items'
         });
