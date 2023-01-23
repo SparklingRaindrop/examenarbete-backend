@@ -6,19 +6,19 @@ import { isDeactivatedToken } from '../utils/service.model';
 
 dotenv.config();
 
-export function checkToken(req: Request, res: Response, next: NextFunction) {
+export async function checkToken(req: Request, res: Response, next: NextFunction) {
     const authorization = req.headers.authorization;
     const token = authorization?.split(' ')[1];
 
     if (token) {
-        if (!process.env.SECRET_KEY) {
+        if (!process.env.ACCESS_TOKEN_SECRET_KEY || !process.env.REFRESH_TOKEN_SECRET_KEY) {
             res.status(Status.ServerError).send({
                 error: 'Something occurred on the server.'
             });
             throw new Error('Cannot find the key');
         }
 
-        jwt.verify(token as string, process.env.SECRET_KEY, async (err, decoded) => {
+        jwt.verify(token as string, process.env.ACCESS_TOKEN_SECRET_KEY, async (err, decoded) => {
 
             if (err || !decoded) {
                 res.status(Status.Unauthorized).send({
@@ -43,3 +43,21 @@ export function checkToken(req: Request, res: Response, next: NextFunction) {
         return;
     }
 }
+
+/* function refreshAccessToken(req: Request, res: Response) {
+    const refreshToken = req.body.refresh_token;
+    if (!refreshToken) {
+      return res.status(401).send("No refresh token");
+    }
+    const refresh = verifyToken(refreshToken);
+    const session = getSession(refresh.sessionId);
+    const newAccessToken = signToken(session, "300s");
+    if (!newAccessToken) {
+      return res.status(401).send("Unable to generate access token");
+    }
+    const newRefreshToken = signToken(session.sessionId, "1y");
+    return res.send({
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken,
+    });
+  } */

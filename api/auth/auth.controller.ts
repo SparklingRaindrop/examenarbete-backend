@@ -11,20 +11,23 @@ import { createSession, Session } from '../../utils/session.model';
 
 dotenv.config();
 
-function generateToken(data: Partial<Pick<User, 'id'> & Pick<Session, 'session_id'>>, expiresIn?: SignOptions['expiresIn']) {
-    if (!process.env.SECRET_KEY) {
-        throw new Error('Set SECRET_KY for generating access tokens');
+function generateToken(
+    data: Partial<Pick<User, 'id'> & Pick<Session, 'refresh_id'>>,
+    typ: 'refresh' | 'access',
+    expiresIn?: SignOptions['expiresIn']
+) {
+    if (!process.env.ACCESS_TOKEN_SECRET_KEY || !process.env.REFRESH_TOKEN_SECRET_KEY) {
+        throw new Error('SECRET_KEY is undefined!');
     }
     return jwt.sign(data,
-        process.env.SECRET_KEY,
+        typ === 'access' ? process.env.ACCESS_TOKEN_SECRET_KEY : process.env.REFRESH_TOKEN_SECRET_KEY,
         { expiresIn: expiresIn || process.env.TOKEN_DURATION }
     );
 }
 
 function getExpiredAt() {
-    const time = new Date();
-    const limit = process.env.TOKEN_DURATION ? Number(process.env.TOKEN_DURATION.replace(/[^0-9]/g, '')) : 1800;
-    return time.setSeconds(time.getSeconds() + limit);
+    const now = new Date();
+    return new Date(now.getTime() + 300000);
 }
 
 export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -70,21 +73,21 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
 
     const newSession = {
         user_id: user.id,
-        session_id: uuid(),
+        refresh_id: uuid(),
         created_at: new Date(),
     };
     await createSession(newSession);
 
     const userData = {
         id: user.id,
-        session_id: newSession.session_id
+        refresh_id: newSession.refresh_id
     };
-    const accessToken = generateToken(userData);
-    const sessionToken = generateToken({ session_id: newSession.session_id }, '2h');
+    const accessToken = generateToken(userData, 'access');
+    const refreshToken = generateToken({ refresh_id: newSession.refresh_id }, 'refresh', '2h');
 
     res.status(Status.Created).send({
         accessToken,
-        sessionToken,
+        refreshToken,
         expires: getExpiredAt()
     });
 
