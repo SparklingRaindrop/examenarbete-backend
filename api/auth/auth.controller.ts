@@ -79,7 +79,7 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
         id: user.id,
         session_id: newSession.session_id
     };
-    const accessToken = generateToken(userData, '300s');
+    const accessToken = generateToken(userData);
     const sessionToken = generateToken({ session_id: newSession.session_id }, '2h');
 
     res.status(Status.Created).send({
