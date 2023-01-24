@@ -160,6 +160,7 @@ export async function generateGroceries(req: Request, res: Response, next: NextF
 
     if (plans && plans.length === 0) {
         res.status(Status.Succuss).send([]);
+        return;
     } else if (!plans) {
         throw new Error('GetPlan returned nothing!');
     }
