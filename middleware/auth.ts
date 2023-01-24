@@ -7,10 +7,9 @@ import { isDeactivatedToken } from '../utils/service.model';
 dotenv.config();
 
 export async function checkToken(req: Request, res: Response, next: NextFunction) {
-    const authorization = req.headers.authorization;
-    const token = authorization?.split(' ')[1];
+    const { access_token } = req.cookies;
 
-    if (token) {
+    if (access_token) {
         if (!process.env.ACCESS_TOKEN_SECRET_KEY || !process.env.REFRESH_TOKEN_SECRET_KEY) {
             res.status(Status.ServerError).send({
                 error: 'Something occurred on the server.'
@@ -18,26 +17,28 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
             throw new Error('Cannot find the key');
         }
 
-        jwt.verify(token as string, process.env.ACCESS_TOKEN_SECRET_KEY, async (err, decoded) => {
+        jwt.verify(
+            access_token as string,
+            process.env.ACCESS_TOKEN_SECRET_KEY,
+            async (err, decoded) => {
+                if (err || !decoded) {
+                    res.status(Status.Unauthorized).send({
+                        error: 'Failed to authenticate user. [code: s1]'
+                    });
+                    return;
+                }
 
-            if (err || !decoded) {
-                res.status(Status.Unauthorized).send({
-                    error: 'Failed to authenticate user. [code: s1]'
-                });
-                return;
-            }
-
-            const userId = (<{ id: User['id'] }>decoded).id;
-            if (await isDeactivatedToken(userId)) {
-                res.status(Status.Unauthorized).send({
-                    error: 'Failed to authenticate user. [code: s2]'
-                });
-                return;
-            } else {
-                req.user = { id: userId };
-                next();
-            }
-        });
+                const userId = (<{ id: User['id'] }>decoded).id;
+                if (await isDeactivatedToken(userId)) {
+                    res.status(Status.Unauthorized).send({
+                        error: 'Failed to authenticate user. [code: s2]'
+                    });
+                    return;
+                } else {
+                    req.user = { id: userId };
+                    next();
+                }
+            });
     } else {
         res.status(Status.Forbidden).send({ error: 'No Token Provided.' });
         return;

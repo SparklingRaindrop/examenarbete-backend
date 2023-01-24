@@ -14,6 +14,7 @@ import { recipesRoute } from '../api/recipes/recipes.routes';
 import { plansRoute } from '../api/plans/plans.routes';
 import { unitsRoute } from '../api/units/units.routes';
 import { stocksRoute } from '../api/stocks/stocks.route';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ export class Server {
         };
 
         // middleware
+        this.app.use(cookieParser());
         this.app.use(bodyParser.json());
         this.app.use(cors(corsOptions));
         this.app.use(logger);
