@@ -7,9 +7,9 @@ import { isDeactivatedToken } from '../utils/service.model';
 dotenv.config();
 
 export async function checkToken(req: Request, res: Response, next: NextFunction) {
-    const { access_token } = req.cookies;
+    const { accessToken } = req.cookies;
 
-    if (access_token) {
+    if (accessToken) {
         if (!process.env.ACCESS_TOKEN_SECRET_KEY || !process.env.REFRESH_TOKEN_SECRET_KEY) {
             res.status(Status.ServerError).send({
                 error: 'Something occurred on the server.'
@@ -18,7 +18,7 @@ export async function checkToken(req: Request, res: Response, next: NextFunction
         }
 
         jwt.verify(
-            access_token as string,
+            accessToken as string,
             process.env.ACCESS_TOKEN_SECRET_KEY,
             async (err, decoded) => {
                 if (err || !decoded) {
