@@ -1,7 +1,6 @@
 import knex from '../../knex/knex';
 
-type LoginOption = 'username' | 'email';
-export function getUser(userData: { [key in LoginOption as string]: string }): Promise<User | undefined> {
+export function getUser(userData: Pick<User, 'username'> | Pick<User, 'email'>): Promise<User | undefined> {
     return knex<User>('User')
         .select()
         .where(userData)

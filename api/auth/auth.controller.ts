@@ -7,15 +7,14 @@ import dotenv from 'dotenv';
 import Status from '../../types/api';
 import { addUser, getUser, isAvailableEmail, removeUser, updateUser } from './auth.model';
 import { activateUserId, deactivateToken } from '../../utils/service.model';
-import { createSession, Session } from '../../utils/session.model';
 
 dotenv.config();
 
 function generateToken(
-    data: Partial<Pick<User, 'id'> & Pick<Session, 'refresh_id'>>,
+    data: Partial<Pick<User, 'id'> & Partial<Omit<User, 'id'>>>,
     typ: 'refresh' | 'access',
     expiresIn?: SignOptions['expiresIn']
-) {
+): string {
     if (!process.env.ACCESS_TOKEN_SECRET_KEY || !process.env.REFRESH_TOKEN_SECRET_KEY) {
         throw new Error('SECRET_KEY is undefined!');
     }
@@ -25,9 +24,9 @@ function generateToken(
     );
 }
 
-function getExpiredAt() {
-    const now = new Date();
-    return new Date(now.getTime() + 300000);
+function getMinutesFromNow(minutes: number): Date {
+    const today = new Date();
+    return new Date(today.getTime() + minutes * 60000);
 }
 
 export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -71,29 +70,28 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
             return;
         });
 
-    const newSession = {
-        user_id: user.id,
-        refresh_id: uuid(),
-        created_at: new Date(),
-    };
-    await createSession(newSession);
 
     const userData = {
         id: user.id,
-        refresh_id: newSession.refresh_id
     };
+
     const accessToken = generateToken(userData, 'access');
-    const refreshToken = generateToken({ refresh_id: newSession.refresh_id }, 'refresh', '2h');
+    const refreshToken = generateToken({ ...(username ? { username } : { email }) }, 'refresh', '1d');
+    // Do not add domain on localhost
+    res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 1day
+    });
+
 
     res.status(Status.Created).send({
         accessToken,
-        refreshToken,
-        expires: getExpiredAt()
+        expires: getMinutesFromNow(5)
     });
 
 }
 
-function isValidEmail(email: string) {
+function isValidEmail(email: string): boolean {
     const emailRegex = new RegExp('' +
         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))/.source +
         /@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.source
@@ -101,7 +99,7 @@ function isValidEmail(email: string) {
     return emailRegex.test(email);
 }
 
-function isValidPassword(password: string) {
+function isValidPassword(password: string): boolean {
     // At least one uppercase, one special character, one number,
     // minimum 8 but maximum 15
     const passwordRegex = new RegExp('' +
@@ -111,7 +109,7 @@ function isValidPassword(password: string) {
     return passwordRegex.test(password);
 }
 
-function isValidUsername(username: string) {
+function isValidUsername(username: string): boolean {
     // Begin with an alphabet, can contain only lower, uppercase and numbers
     // minimum 7 but maximum 15
     const usernameRegex = new RegExp(/^[a-zA-Z][a-zA-Z0-9]{7,15}\d*$/);
@@ -251,4 +249,60 @@ export async function logout(req: Request, res: Response, next: NextFunction): P
         created_at: new Date()
     }).catch((err) => next(err));
     res.status(Status.Succuss).send();
-} 
+}
+
+type Decoded = {
+    email?: string,
+    username?: string,
+    iat?: number,
+    exp?: number
+}
+
+export async function refresh(req: Request, res: Response, next: NextFunction) {
+    const { refreshToken } = req.cookies;
+
+    if (!process.env.REFRESH_TOKEN_SECRET_KEY) {
+        throw new Error('Provide REFRESH_TOKEN_SECRET_KEY');
+    }
+
+    jwt.verify(
+        refreshToken as string,
+        process.env.REFRESH_TOKEN_SECRET_KEY,
+        async (err, decoded) => {
+            if (err || !decoded) {
+                res.status(Status.Unauthorized).send({
+                    error: 'Failed to authenticate user. [code: s1]'
+                });
+                return false;
+            }
+
+            const decodedRefreshKey = (<Decoded>decoded);
+            const key = { ...decodedRefreshKey };
+            delete key.iat;
+            delete key.exp;
+            const user = await getUser(key as Pick<User, 'username'> | Pick<User, 'email'>).catch((err) => next(err));
+            if (!user) {
+                res.status(Status.Unauthorized).send({
+                    error: 'Failed to authenticate user. [code: s2]'
+                });
+                return;
+            } else {
+                const accessToken = generateToken({ id: user.id, }, 'access');
+                const refreshToken = generateToken(key, 'refresh', '1d');
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true,
+                    sameSite: 'none',
+                    secure: true,
+                    maxAge: 24 * 60 * 60 * 1000 // 1day
+                });
+
+                res.status(Status.Created).send({
+                    accessToken,
+                    refreshToken,
+                    expires: getMinutesFromNow(5)
+                });
+                return;
+            }
+        }
+    );
+}
