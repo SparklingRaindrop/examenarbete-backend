@@ -86,7 +86,7 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
 
     res.status(Status.Created).send({
         accessToken,
-        expires: getMinutesFromNow(5)
+        expires: getMinutesFromNow(60)
     });
 
 }
