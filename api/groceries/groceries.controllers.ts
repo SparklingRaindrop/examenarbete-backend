@@ -175,7 +175,7 @@ export async function generateGroceries(req: Request, res: Response, next: NextF
     // calculate
     const stocks = await getStocks(id);
     const result = ingredients.reduce((result: IngredientResponse[], currentItem) => {
-        const itemInStock = stocks.find(({ item }) => item.id === currentItem.item.id);
+        const itemInStock = stocks.find(({ item, amount }) => item.id === currentItem.item.id && amount !== 0);
         if (!itemInStock) {
             result.push(currentItem);
 
