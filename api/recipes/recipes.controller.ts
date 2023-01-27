@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import Error from '../../types/error';
 //import { getCategories } from '../categories/categories.model';
-import { addIngredients, getIngredients } from '../ingredients/ingredients.model';
+import { addIngredients, getIngredients, updateIngredient } from '../ingredients/ingredients.model';
 import { addInstruction, getInstructions, updateInstruction } from '../instructions/instructions.model';
 import { addRecipe, getRecipe, getRecipes, removeRecipe, updateRecipe } from './recipes.model';
 
@@ -129,14 +129,16 @@ export async function update(req: Request, res: Response, next: NextFunction): P
         await updateInstruction(id, recipeId, newData);
     })).catch((err) => next(err));
 
-    /*     const newIngredients = (ingredients as Ingredient[]).map(item => ({
-            id: uuid(),
-            amount: item.amount,
-            item_id: item.item_id,
-            recipe_id: recipeId,
-        }));
-        await updateIngredient(id, recipeId, newIngredients).catch((err) => next(err)); */
+    const newIngredients = (ingredients as Ingredient[]).map(item => ({
+        id: uuid(),
+        amount: item.amount,
+        item_id: item.item_id,
+        recipe_id: recipeId,
+    }));
 
+    await Promise.all([...newIngredients as Partial<Ingredient>[]].map(async (newIngredient) =>
+        updateIngredient(recipeId, newIngredient)
+    )).catch((err) => next(err));
 
     //Update recipe
     await updateRecipe(id, recipeId, newRecipeData);

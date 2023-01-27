@@ -61,9 +61,8 @@ export async function addIngredients(newData: Ingredient[]): Promise<Omit<Ingred
         .then(() => newData);
 }
 
-export function updateIngredient(userId: User['id'], ingredientId: Ingredient['id'], newData: Partial<Ingredient>): Promise<void> {
+export function updateIngredient(recipeId: Recipe['id'], newData: Partial<Ingredient>): Promise<void> {
     return knex<Ingredient>('Ingredient')
-        .where('id', ingredientId)
-        .andWhere('Ingredient.user_id', userId)
+        .where('recipe_id', recipeId)
         .update(newData);
 }
