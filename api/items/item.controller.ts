@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { v4 as uuid } from 'uuid';
 import Status from '../../types/api';
 import Error from '../../types/error';
-import { addItem, updateItem, getItem, getItems, isDuplicatedItemName } from './item.model';
+import { addItem, updateItem, getItem, getItems, isDuplicatedItemName, removeItem } from './item.model';
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.user;
@@ -53,6 +53,19 @@ export async function add(req: Request, res: Response, next: NextFunction): Prom
 
     const addedItem = await addItem(id, newItem).catch((err) => next(err));
     res.status(Status.Created).send(addedItem);
+}
+
+export async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.user;
+    const { id: itemId } = req.params;
+
+    const deletedCount = await removeItem(id, itemId);
+    if (!deletedCount) {
+        res.status(Status.NotFound).send();
+        return;
+    }
+
+    res.status(Status.NoContent).send();
 }
 
 export async function update(req: Request, res: Response, next: NextFunction): Promise<void> {

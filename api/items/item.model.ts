@@ -101,6 +101,14 @@ export function updateItem(userId: User['id'], itemId: Item['id'], newData: Part
         .update(newData);
 }
 
+export function removeItem(userId: User['id'], itemId: Item['id']): Promise<number> {
+    return knex<Item>('Item')
+        .where('id', itemId)
+        .andWhere('Item.user_id', userId)
+        .whereNot('Item.user_id', null)
+        .del();
+}
+
 export async function isDuplicatedItemName(
     userId: User['id'],
     { name, item_id }: { name: Item['name'], item_id?: Item['id'] }
