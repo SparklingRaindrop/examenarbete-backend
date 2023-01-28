@@ -5,11 +5,11 @@ Create .env file to the root directory.<br>
 Set following values:
 
 - **CLIENT_URL**<br>
-if your don't change frontend config it's http://localhost:3000
+If you didn't change frontend config, it's http://localhost:3000
 - **ACCESS_TOKEN_SECRET_KEY**<br>
-random secret key
+Random secret key
 - **REFRESH_TOKEN_SECRET_KEY**<br>
-random secret key
+Random secret key
 - **TOKEN_DURATION**<br>
 (number)s - exmaple: 60s
 ## To run server
